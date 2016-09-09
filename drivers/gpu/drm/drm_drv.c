@@ -209,6 +209,7 @@ static void drm_minor_free(struct drm_device *dev, unsigned int type)
 static int drm_minor_register(struct drm_device *dev, unsigned int type)
 {
 	struct drm_minor *minor;
+	struct drm_crtc *crtc;
 	unsigned long flags;
 	int ret;
 
@@ -224,6 +225,14 @@ static int drm_minor_register(struct drm_device *dev, unsigned int type)
 		goto err_debugfs;
 	}
 
+	if (type == DRM_MINOR_PRIMARY) {
+		drm_for_each_crtc(crtc, dev) {
+			ret = drm_debugfs_crtc_add(crtc);
+			if (ret)
+				DRM_ERROR("DRM: Failed to initialize CRC debugfs.\n");
+		}
+	}
+
 	ret = device_add(minor->kdev);
 	if (ret)
 		goto err_debugfs;
@@ -237,6 +246,10 @@ static int drm_minor_register(struct drm_device *dev, unsigned int type)
 	return 0;
 
 err_debugfs:
+	if (type == DRM_MINOR_PRIMARY) {
+		drm_for_each_crtc(crtc, dev)
+			drm_debugfs_crtc_remove(crtc);
+	}
 	drm_debugfs_cleanup(minor);
 	return ret;
 }
@@ -244,11 +257,17 @@ err_debugfs:
 static void drm_minor_unregister(struct drm_device *dev, unsigned int type)
 {
 	struct drm_minor *minor;
+	struct drm_crtc *crtc;
 	unsigned long flags;
 
 	minor = *drm_minor_get_slot(dev, type);
 	if (!minor || !device_is_registered(minor->kdev))
 		return;
+
+	if (type == DRM_MINOR_PRIMARY) {
+		drm_for_each_crtc(crtc, dev)
+			drm_debugfs_crtc_remove(crtc);
+	}
 
 	/* replace @minor with NULL so lookups will fail from now on */
 	spin_lock_irqsave(&drm_minor_lock, flags);
