@@ -3173,15 +3173,33 @@ static void chv_dp_post_pll_disable(struct intel_encoder *encoder,
 	chv_phy_post_pll_disable(encoder, old_crtc_state);
 }
 
-/*
- * Fetch AUX CH registers 0x202 - 0x207 which contain
- * link status information
- */
-bool
-intel_dp_get_link_status(struct intel_dp *intel_dp, uint8_t link_status[DP_LINK_STATUS_SIZE])
+static bool intel_dp_get_y_cord_status(struct intel_dp *intel_dp)
 {
-	return drm_dp_dpcd_read(&intel_dp->aux, DP_LANE0_1_STATUS, link_status,
-				DP_LINK_STATUS_SIZE) == DP_LINK_STATUS_SIZE;
+	uint8_t psr_caps = 0;
+
+	if (drm_dp_dpcd_readb(&intel_dp->aux, DP_PSR_CAPS, &psr_caps) != 1)
+		return false;
+	return psr_caps & DP_PSR2_SU_Y_COORDINATE_REQUIRED;
+}
+
+static bool intel_dp_get_colorimetry_status(struct intel_dp *intel_dp)
+{
+	uint8_t dprx = 0;
+
+	if (drm_dp_dpcd_readb(&intel_dp->aux, DP_DPRX_FEATURE_ENUMERATION_LIST,
+			      &dprx) != 1)
+		return false;
+	return dprx & DP_VSC_SDP_EXT_FOR_COLORIMETRY_SUPPORTED;
+}
+
+static bool intel_dp_get_alpm_status(struct intel_dp *intel_dp)
+{
+	uint8_t alpm_caps = 0;
+
+	if (drm_dp_dpcd_readb(&intel_dp->aux, DP_RECEIVER_ALPM_CAP,
+			      &alpm_caps) != 1)
+		return false;
+	return alpm_caps & DP_ALPM_CAP;
 }
 
 /* These are source-specific values. */
@@ -4270,7 +4288,7 @@ intel_dp_needs_link_retrain(struct intel_dp *intel_dp)
 	if (!intel_dp->link_trained)
 		return false;
 
-	if (!intel_dp_get_link_status(intel_dp, link_status))
+	if (drm_dp_dpcd_read_link_status(&intel_dp->aux, link_status) <= 0)
 		return false;
 
 	/*
