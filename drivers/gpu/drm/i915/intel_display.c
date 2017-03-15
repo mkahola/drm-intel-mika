@@ -14718,18 +14718,14 @@ void intel_init_display_hooks(struct drm_i915_private *dev_priv)
  * resume, or other times.  This quirk makes sure that's the case for
  * affected systems.
  */
-static void quirk_pipea_force(struct drm_device *dev)
+static void quirk_pipea_force(struct drm_i915_private *dev_priv)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
-
 	dev_priv->quirks |= QUIRK_PIPEA_FORCE;
 	DRM_INFO("applying pipe a force quirk\n");
 }
 
-static void quirk_pipeb_force(struct drm_device *dev)
+static void quirk_pipeb_force(struct drm_i915_private *dev_priv)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
-
 	dev_priv->quirks |= QUIRK_PIPEB_FORCE;
 	DRM_INFO("applying pipe b force quirk\n");
 }
@@ -14737,9 +14733,8 @@ static void quirk_pipeb_force(struct drm_device *dev)
 /*
  * Some machines (Lenovo U160) do not work with SSC on LVDS for some reason
  */
-static void quirk_ssc_force_disable(struct drm_device *dev)
+static void quirk_ssc_force_disable(struct drm_i915_private *dev_priv)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
 	dev_priv->quirks |= QUIRK_LVDS_SSC_DISABLE;
 	DRM_INFO("applying lvds SSC disable quirk\n");
 }
@@ -14748,17 +14743,15 @@ static void quirk_ssc_force_disable(struct drm_device *dev)
  * A machine (e.g. Acer Aspire 5734Z) may need to invert the panel backlight
  * brightness value
  */
-static void quirk_invert_brightness(struct drm_device *dev)
+static void quirk_invert_brightness(struct drm_i915_private *dev_priv)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
 	dev_priv->quirks |= QUIRK_INVERT_BRIGHTNESS;
 	DRM_INFO("applying inverted panel brightness quirk\n");
 }
 
 /* Some VBT's incorrectly indicate no backlight is present */
-static void quirk_backlight_present(struct drm_device *dev)
+static void quirk_backlight_present(struct drm_i915_private *dev_priv)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
 	dev_priv->quirks |= QUIRK_BACKLIGHT_PRESENT;
 	DRM_INFO("applying backlight present quirk\n");
 }
@@ -14767,12 +14760,12 @@ struct intel_quirk {
 	int device;
 	int subsystem_vendor;
 	int subsystem_device;
-	void (*hook)(struct drm_device *dev);
+	void (*hook)(struct drm_i915_private *dev_priv);
 };
 
 /* For systems that don't have a meaningful PCI subdevice/subvendor ID */
 struct intel_dmi_quirk {
-	void (*hook)(struct drm_device *dev);
+	void (*hook)(struct drm_i915_private *dev_priv);
 	const struct dmi_system_id (*dmi_id_list)[];
 };
 
@@ -14860,9 +14853,9 @@ static struct intel_quirk intel_quirks[] = {
 	{ 0x0a16, 0x1028, 0x0a35, quirk_backlight_present },
 };
 
-static void intel_init_quirks(struct drm_device *dev)
+static void intel_init_quirks(struct drm_i915_private *dev_priv)
 {
-	struct pci_dev *d = dev->pdev;
+	struct pci_dev *d = dev_priv->drm.pdev;
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(intel_quirks); i++) {
@@ -14873,11 +14866,11 @@ static void intel_init_quirks(struct drm_device *dev)
 		     q->subsystem_vendor == PCI_ANY_ID) &&
 		    (d->subsystem_device == q->subsystem_device ||
 		     q->subsystem_device == PCI_ANY_ID))
-			q->hook(dev);
+			q->hook(dev_priv);
 	}
 	for (i = 0; i < ARRAY_SIZE(intel_dmi_quirks); i++) {
 		if (dmi_check_system(*intel_dmi_quirks[i].dmi_id_list) != 0)
-			intel_dmi_quirks[i].hook(dev);
+			intel_dmi_quirks[i].hook(dev_priv);
 	}
 }
 
@@ -15018,7 +15011,7 @@ int intel_modeset_init(struct drm_device *dev)
 	INIT_WORK(&dev_priv->atomic_helper.free_work,
 		  intel_atomic_helper_free_state_worker);
 
-	intel_init_quirks(dev);
+	intel_init_quirks(dev_priv);
 
 	intel_init_pm(dev_priv);
 
