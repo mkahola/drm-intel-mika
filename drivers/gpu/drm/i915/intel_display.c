@@ -3588,7 +3588,7 @@ void intel_finish_reset(struct drm_i915_private *dev_priv)
 		intel_runtime_pm_enable_interrupts(dev_priv);
 
 		intel_pps_unlock_regs_wa(dev_priv);
-		intel_modeset_init_hw(dev);
+		intel_modeset_init_hw(dev_priv);
 
 		spin_lock_irq(&dev_priv->irq_lock);
 		if (dev_priv->display.hpd_irq_setup)
@@ -14893,10 +14893,8 @@ static void i915_disable_vga(struct drm_i915_private *dev_priv)
 	POSTING_READ(vga_reg);
 }
 
-void intel_modeset_init_hw(struct drm_device *dev)
+void intel_modeset_init_hw(struct drm_i915_private *dev_priv)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
-
 	intel_update_cdclk(dev_priv);
 	dev_priv->cdclk.logical = dev_priv->cdclk.actual = dev_priv->cdclk.hw;
 
@@ -15077,7 +15075,7 @@ int intel_modeset_init(struct drm_device *dev)
 	intel_shared_dpll_init(dev);
 
 	intel_update_czclk(dev_priv);
-	intel_modeset_init_hw(dev);
+	intel_modeset_init_hw(dev_priv);
 
 	if (dev_priv->max_cdclk_freq == 0)
 		intel_update_max_cdclk(dev_priv);

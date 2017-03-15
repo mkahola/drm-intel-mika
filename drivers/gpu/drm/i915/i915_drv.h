@@ -3802,7 +3802,7 @@ void intel_device_info_runtime_init(struct drm_i915_private *dev_priv);
 void intel_device_info_dump(struct drm_i915_private *dev_priv);
 
 /* modesetting */
-extern void intel_modeset_init_hw(struct drm_device *dev);
+extern void intel_modeset_init_hw(struct drm_i915_private *dev_priv);
 extern int intel_modeset_init(struct drm_device *dev);
 extern void intel_modeset_gem_init(struct drm_device *dev);
 extern void intel_modeset_cleanup(struct drm_device *dev);
