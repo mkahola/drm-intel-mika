@@ -618,7 +618,7 @@ i9xx_find_best_dpll(const struct intel_limit *limit,
 		    int target, int refclk, struct dpll *match_clock,
 		    struct dpll *best_clock)
 {
-	struct drm_device *dev = crtc_state->base.crtc->dev;
+	struct drm_i915_private *dev_priv = to_i915(crtc_state->base.crtc->dev);
 	struct dpll clock;
 	int err = target;
 
@@ -639,7 +639,7 @@ i9xx_find_best_dpll(const struct intel_limit *limit,
 					int this_err;
 
 					i9xx_calc_dpll_params(refclk, &clock);
-					if (!intel_PLL_is_valid(to_i915(dev),
+					if (!intel_PLL_is_valid(dev_priv,
 								limit,
 								&clock))
 						continue;
@@ -676,7 +676,7 @@ pnv_find_best_dpll(const struct intel_limit *limit,
 		   int target, int refclk, struct dpll *match_clock,
 		   struct dpll *best_clock)
 {
-	struct drm_device *dev = crtc_state->base.crtc->dev;
+	struct drm_i915_private *dev_priv = to_i915(crtc_state->base.crtc->dev);
 	struct dpll clock;
 	int err = target;
 
@@ -695,7 +695,7 @@ pnv_find_best_dpll(const struct intel_limit *limit,
 					int this_err;
 
 					pnv_calc_dpll_params(refclk, &clock);
-					if (!intel_PLL_is_valid(to_i915(dev),
+					if (!intel_PLL_is_valid(dev_priv,
 								limit,
 								&clock))
 						continue;
@@ -732,7 +732,7 @@ g4x_find_best_dpll(const struct intel_limit *limit,
 		   int target, int refclk, struct dpll *match_clock,
 		   struct dpll *best_clock)
 {
-	struct drm_device *dev = crtc_state->base.crtc->dev;
+	struct drm_i915_private *dev_priv = to_i915(crtc_state->base.crtc->dev);
 	struct dpll clock;
 	int max_n;
 	bool found = false;
@@ -756,7 +756,7 @@ g4x_find_best_dpll(const struct intel_limit *limit,
 					int this_err;
 
 					i9xx_calc_dpll_params(refclk, &clock);
-					if (!intel_PLL_is_valid(to_i915(dev),
+					if (!intel_PLL_is_valid(dev_priv,
 								limit,
 								&clock))
 						continue;
@@ -827,7 +827,7 @@ vlv_find_best_dpll(const struct intel_limit *limit,
 		   struct dpll *best_clock)
 {
 	struct intel_crtc *crtc = to_intel_crtc(crtc_state->base.crtc);
-	struct drm_device *dev = crtc->base.dev;
+	struct drm_i915_private *dev_priv = to_i915(crtc->base.dev);
 	struct dpll clock;
 	unsigned int bestppm = 1000000;
 	/* min update 19.2 MHz */
@@ -853,12 +853,12 @@ vlv_find_best_dpll(const struct intel_limit *limit,
 
 					vlv_calc_dpll_params(refclk, &clock);
 
-					if (!intel_PLL_is_valid(to_i915(dev),
+					if (!intel_PLL_is_valid(dev_priv,
 								limit,
 								&clock))
 						continue;
 
-					if (!vlv_PLL_is_optimal(to_i915(dev), target,
+					if (!vlv_PLL_is_optimal(dev_priv, target,
 								&clock,
 								best_clock,
 								bestppm, &ppm))
@@ -887,7 +887,7 @@ chv_find_best_dpll(const struct intel_limit *limit,
 		   struct dpll *best_clock)
 {
 	struct intel_crtc *crtc = to_intel_crtc(crtc_state->base.crtc);
-	struct drm_device *dev = crtc->base.dev;
+	struct drm_i915_private *dev_priv = to_i915(crtc->base.dev);
 	unsigned int best_error_ppm;
 	struct dpll clock;
 	uint64_t m2;
@@ -922,10 +922,10 @@ chv_find_best_dpll(const struct intel_limit *limit,
 
 			chv_calc_dpll_params(refclk, &clock);
 
-			if (!intel_PLL_is_valid(to_i915(dev), limit, &clock))
+			if (!intel_PLL_is_valid(dev_priv, limit, &clock))
 				continue;
 
-			if (!vlv_PLL_is_optimal(to_i915(dev), target, &clock, best_clock,
+			if (!vlv_PLL_is_optimal(dev_priv, target, &clock, best_clock,
 						best_error_ppm, &error_ppm))
 				continue;
 
