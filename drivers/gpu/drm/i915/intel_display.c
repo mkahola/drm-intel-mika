@@ -14909,9 +14909,8 @@ void intel_modeset_init_hw(struct drm_i915_private *dev_priv)
  * through the atomic check code to calculate new watermark values in the
  * state object.
  */
-static void sanitize_watermarks(struct drm_device *dev)
+static void sanitize_watermarks(struct drm_i915_private *dev_priv)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
 	struct drm_atomic_state *state;
 	struct intel_atomic_state *intel_state;
 	struct drm_crtc *crtc;
@@ -14930,7 +14929,7 @@ static void sanitize_watermarks(struct drm_device *dev)
 	 */
 	drm_modeset_acquire_init(&ctx, 0);
 retry:
-	ret = drm_modeset_lock_all_ctx(dev, &ctx);
+	ret = drm_modeset_lock_all_ctx(&dev_priv->drm, &ctx);
 	if (ret == -EDEADLK) {
 		drm_modeset_backoff(&ctx);
 		goto retry;
@@ -14938,7 +14937,7 @@ retry:
 		goto fail;
 	}
 
-	state = drm_atomic_helper_duplicate_state(dev, &ctx);
+	state = drm_atomic_helper_duplicate_state(&dev_priv->drm, &ctx);
 	if (WARN_ON(IS_ERR(state)))
 		goto fail;
 
@@ -14952,7 +14951,7 @@ retry:
 	if (!HAS_GMCH_DISPLAY(dev_priv))
 		intel_state->skip_intermediate_wm = true;
 
-	ret = intel_atomic_check(dev, state);
+	ret = intel_atomic_check(&dev_priv->drm, state);
 	if (ret) {
 		/*
 		 * If we fail here, it means that the hardware appears to be
@@ -15114,7 +15113,7 @@ int intel_modeset_init(struct drm_i915_private *dev_priv)
 	 * since the watermark calculation done here will use pstate->fb.
 	 */
 	if (!HAS_GMCH_DISPLAY(dev_priv))
-		sanitize_watermarks(&dev_priv->drm);
+		sanitize_watermarks(dev_priv);
 
 	return 0;
 }
