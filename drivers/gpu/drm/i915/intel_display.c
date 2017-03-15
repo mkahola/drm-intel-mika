@@ -120,7 +120,7 @@ static void intel_crtc_init_scalers(struct intel_crtc *crtc,
 static void skylake_pfit_enable(struct intel_crtc *crtc);
 static void ironlake_pfit_disable(struct intel_crtc *crtc, bool force);
 static void ironlake_pfit_enable(struct intel_crtc *crtc);
-static void intel_modeset_setup_hw_state(struct drm_device *dev);
+static void intel_modeset_setup_hw_state(struct drm_i915_private *dev_priv);
 static void intel_pre_disable_primary_noatomic(struct drm_crtc *crtc);
 
 struct intel_limit {
@@ -3461,7 +3461,7 @@ __intel_display_resume(struct drm_device *dev,
 	struct drm_crtc *crtc;
 	int i, ret;
 
-	intel_modeset_setup_hw_state(dev);
+	intel_modeset_setup_hw_state(to_i915(dev));
 	i915_redisable_vga(to_i915(dev));
 
 	if (!state)
@@ -15085,7 +15085,7 @@ int intel_modeset_init(struct drm_device *dev)
 	intel_setup_outputs(dev_priv);
 
 	drm_modeset_lock_all(dev);
-	intel_modeset_setup_hw_state(dev);
+	intel_modeset_setup_hw_state(dev_priv);
 	drm_modeset_unlock_all(dev);
 
 	for_each_intel_crtc(dev, crtc) {
@@ -15383,9 +15383,8 @@ static void readout_plane_state(struct intel_crtc *crtc)
 				visible);
 }
 
-static void intel_modeset_readout_hw_state(struct drm_device *dev)
+static void intel_modeset_readout_hw_state(struct drm_i915_private *dev_priv)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
 	enum pipe pipe;
 	struct intel_crtc *crtc;
 	struct intel_encoder *encoder;
@@ -15395,7 +15394,7 @@ static void intel_modeset_readout_hw_state(struct drm_device *dev)
 
 	dev_priv->active_crtcs = 0;
 
-	for_each_intel_crtc(dev, crtc) {
+	for_each_intel_crtc(&dev_priv->drm, crtc) {
 		struct intel_crtc_state *crtc_state =
 			to_intel_crtc_state(crtc->base.state);
 
@@ -15425,7 +15424,7 @@ static void intel_modeset_readout_hw_state(struct drm_device *dev)
 		pll->on = pll->funcs.get_hw_state(dev_priv, pll,
 						  &pll->state.hw_state);
 		pll->state.crtc_mask = 0;
-		for_each_intel_crtc(dev, crtc) {
+		for_each_intel_crtc(&dev_priv->drm, crtc) {
 			struct intel_crtc_state *crtc_state =
 				to_intel_crtc_state(crtc->base.state);
 
@@ -15439,7 +15438,7 @@ static void intel_modeset_readout_hw_state(struct drm_device *dev)
 			      pll->name, pll->state.crtc_mask, pll->on);
 	}
 
-	for_each_intel_encoder(dev, encoder) {
+	for_each_intel_encoder(&dev_priv->drm, encoder) {
 		pipe = 0;
 
 		if (encoder->get_hw_state(encoder, &pipe)) {
@@ -15461,7 +15460,7 @@ static void intel_modeset_readout_hw_state(struct drm_device *dev)
 			      pipe_name(pipe));
 	}
 
-	drm_connector_list_iter_begin(dev, &conn_iter);
+	drm_connector_list_iter_begin(&dev_priv->drm, &conn_iter);
 	for_each_intel_connector_iter(connector, &conn_iter) {
 		if (connector->get_hw_state(connector)) {
 			connector->base.dpms = DRM_MODE_DPMS_ON;
@@ -15492,7 +15491,7 @@ static void intel_modeset_readout_hw_state(struct drm_device *dev)
 	}
 	drm_connector_list_iter_end(&conn_iter);
 
-	for_each_intel_crtc(dev, crtc) {
+	for_each_intel_crtc(&dev_priv->drm, crtc) {
 		struct intel_crtc_state *crtc_state =
 			to_intel_crtc_state(crtc->base.state);
 		int pixclk = 0;
@@ -15559,20 +15558,19 @@ get_encoder_power_domains(struct drm_i915_private *dev_priv)
  * and sanitizes it to the current state
  */
 static void
-intel_modeset_setup_hw_state(struct drm_device *dev)
+intel_modeset_setup_hw_state(struct drm_i915_private *dev_priv)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
 	enum pipe pipe;
 	struct intel_crtc *crtc;
 	struct intel_encoder *encoder;
 	int i;
 
-	intel_modeset_readout_hw_state(dev);
+	intel_modeset_readout_hw_state(dev_priv);
 
 	/* HW state is read out, now we need to sanitize this mess. */
 	get_encoder_power_domains(dev_priv);
 
-	for_each_intel_encoder(dev, encoder) {
+	for_each_intel_encoder(&dev_priv->drm, encoder) {
 		intel_sanitize_encoder(encoder);
 	}
 
@@ -15584,7 +15582,7 @@ intel_modeset_setup_hw_state(struct drm_device *dev)
 				       "[setup_hw_state]");
 	}
 
-	intel_modeset_update_connector_atomic_state(dev);
+	intel_modeset_update_connector_atomic_state(&dev_priv->drm);
 
 	for (i = 0; i < dev_priv->num_shared_dpll; i++) {
 		struct intel_shared_dpll *pll = &dev_priv->shared_dplls[i];
@@ -15602,15 +15600,15 @@ intel_modeset_setup_hw_state(struct drm_device *dev)
 		g4x_wm_get_hw_state(dev);
 		g4x_wm_sanitize(dev_priv);
 	} else if (IS_VALLEYVIEW(dev_priv) || IS_CHERRYVIEW(dev_priv)) {
-		vlv_wm_get_hw_state(dev);
+		vlv_wm_get_hw_state(dev_priv);
 		vlv_wm_sanitize(dev_priv);
 	} else if (IS_GEN9(dev_priv)) {
-		skl_wm_get_hw_state(dev);
+		skl_wm_get_hw_state(dev_priv);
 	} else if (HAS_PCH_SPLIT(dev_priv)) {
-		ilk_wm_get_hw_state(dev);
+		ilk_wm_get_hw_state(dev_priv);
 	}
 
-	for_each_intel_crtc(dev, crtc) {
+	for_each_intel_crtc(&dev_priv->drm, crtc) {
 		u64 put_domains;
 
 		put_domains = modeset_get_crtc_power_domains(&crtc->base, crtc->config);
