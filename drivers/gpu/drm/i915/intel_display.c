@@ -3453,7 +3453,7 @@ static void intel_update_primary_planes(struct drm_device *dev)
 }
 
 static int
-__intel_display_resume(struct drm_device *dev,
+__intel_display_resume(struct drm_i915_private *dev_priv,
 		       struct drm_atomic_state *state,
 		       struct drm_modeset_acquire_ctx *ctx)
 {
@@ -3461,8 +3461,8 @@ __intel_display_resume(struct drm_device *dev,
 	struct drm_crtc *crtc;
 	int i, ret;
 
-	intel_modeset_setup_hw_state(to_i915(dev));
-	i915_redisable_vga(to_i915(dev));
+	intel_modeset_setup_hw_state(dev_priv);
+	i915_redisable_vga(dev_priv);
 
 	if (!state)
 		return 0;
@@ -3482,7 +3482,7 @@ __intel_display_resume(struct drm_device *dev,
 	}
 
 	/* ignore any reset values/BIOS leftovers in the WM registers */
-	if (!HAS_GMCH_DISPLAY(to_i915(dev)))
+	if (!HAS_GMCH_DISPLAY(dev_priv))
 		to_intel_atomic_state(state)->skip_intermediate_wm = true;
 
 	ret = drm_atomic_helper_commit_duplicated_state(state, ctx);
@@ -3575,7 +3575,7 @@ void intel_finish_reset(struct drm_i915_private *dev_priv)
 			 */
 			intel_update_primary_planes(dev);
 		} else {
-			ret = __intel_display_resume(dev, state, ctx);
+			ret = __intel_display_resume(dev_priv, state, ctx);
 			if (ret)
 				DRM_ERROR("Restoring old state failed with %i\n", ret);
 		}
@@ -3595,7 +3595,7 @@ void intel_finish_reset(struct drm_i915_private *dev_priv)
 			dev_priv->display.hpd_irq_setup(dev_priv);
 		spin_unlock_irq(&dev_priv->irq_lock);
 
-		ret = __intel_display_resume(dev, state, ctx);
+		ret = __intel_display_resume(dev_priv, state, ctx);
 		if (ret)
 			DRM_ERROR("Restoring old state failed with %i\n", ret);
 
@@ -15622,9 +15622,8 @@ intel_modeset_setup_hw_state(struct drm_i915_private *dev_priv)
 	intel_fbc_init_pipe_state(dev_priv);
 }
 
-void intel_display_resume(struct drm_device *dev)
+void intel_display_resume(struct drm_i915_private *dev_priv)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
 	struct drm_atomic_state *state = dev_priv->modeset_restore_state;
 	struct drm_modeset_acquire_ctx ctx;
 	int ret;
@@ -15633,10 +15632,17 @@ void intel_display_resume(struct drm_device *dev)
 	if (state)
 		state->acquire_ctx = &ctx;
 
+	/*
+	 * This is a cludge because with real atomic modeset mode_config.mutex
+	 * won't be taken. Unfortunately some probed state like
+	 * audio_codec_enable is still protected by mode_config.mutex, so lock
+	 * it here for now.
+	 */
+	mutex_lock(&dev_priv->drm.mode_config.mutex);
 	drm_modeset_acquire_init(&ctx, 0);
 
 	while (1) {
-		ret = drm_modeset_lock_all_ctx(dev, &ctx);
+		ret = drm_modeset_lock_all_ctx(&dev_priv->drm, &ctx);
 		if (ret != -EDEADLK)
 			break;
 
@@ -15644,10 +15650,11 @@ void intel_display_resume(struct drm_device *dev)
 	}
 
 	if (!ret)
-		ret = __intel_display_resume(dev, state, &ctx);
+		ret = __intel_display_resume(dev_priv, state, &ctx);
 
 	drm_modeset_drop_locks(&ctx);
 	drm_modeset_acquire_fini(&ctx);
+	mutex_unlock(&dev_priv->drm.mode_config.mutex);
 
 	if (ret)
 		DRM_ERROR("Restoring old state failed with %i\n", ret);
