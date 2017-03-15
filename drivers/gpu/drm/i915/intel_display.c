@@ -3547,7 +3547,6 @@ void intel_prepare_reset(struct drm_i915_private *dev_priv)
 
 void intel_finish_reset(struct drm_i915_private *dev_priv)
 {
-	struct drm_device *dev = &dev_priv->drm;
 	struct drm_modeset_acquire_ctx *ctx = &dev_priv->reset_ctx;
 	struct drm_atomic_state *state = dev_priv->modeset_restore_state;
 	int ret;
@@ -3606,7 +3605,7 @@ void intel_finish_reset(struct drm_i915_private *dev_priv)
 		drm_atomic_state_put(state);
 	drm_modeset_drop_locks(ctx);
 	drm_modeset_acquire_fini(ctx);
-	mutex_unlock(&dev->mode_config.mutex);
+	mutex_unlock(&dev_priv->drm.mode_config.mutex);
 }
 
 static bool abort_flip_on_reset(struct intel_crtc *crtc)
