@@ -779,7 +779,7 @@ g4x_find_best_dpll(const struct intel_limit *limit,
  * Check if the calculated PLL configuration is more optimal compared to the
  * best configuration and error found so far. Return the calculated error.
  */
-static bool vlv_PLL_is_optimal(struct drm_device *dev, int target_freq,
+static bool vlv_PLL_is_optimal(struct drm_i915_private *dev_priv, int target_freq,
 			       const struct dpll *calculated_clock,
 			       const struct dpll *best_clock,
 			       unsigned int best_error_ppm,
@@ -789,7 +789,7 @@ static bool vlv_PLL_is_optimal(struct drm_device *dev, int target_freq,
 	 * For CHV ignore the error and consider only the P value.
 	 * Prefer a bigger P value based on HW requirements.
 	 */
-	if (IS_CHERRYVIEW(to_i915(dev))) {
+	if (IS_CHERRYVIEW(dev_priv)) {
 		*error_ppm = 0;
 
 		return calculated_clock->p > best_clock->p;
@@ -858,7 +858,7 @@ vlv_find_best_dpll(const struct intel_limit *limit,
 								&clock))
 						continue;
 
-					if (!vlv_PLL_is_optimal(dev, target,
+					if (!vlv_PLL_is_optimal(to_i915(dev), target,
 								&clock,
 								best_clock,
 								bestppm, &ppm))
@@ -925,7 +925,7 @@ chv_find_best_dpll(const struct intel_limit *limit,
 			if (!intel_PLL_is_valid(to_i915(dev), limit, &clock))
 				continue;
 
-			if (!vlv_PLL_is_optimal(dev, target, &clock, best_clock,
+			if (!vlv_PLL_is_optimal(to_i915(dev), target, &clock, best_clock,
 						best_error_ppm, &error_ppm))
 				continue;
 
