@@ -5909,13 +5909,12 @@ static void intel_crtc_disable_noatomic(struct drm_crtc *crtc)
  * turn all crtc's off, but do not adjust state
  * This has to be paired with a call to intel_modeset_setup_hw_state.
  */
-int intel_display_suspend(struct drm_device *dev)
+int intel_display_suspend(struct drm_i915_private *dev_priv)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
 	struct drm_atomic_state *state;
 	int ret;
 
-	state = drm_atomic_helper_suspend(dev);
+	state = drm_atomic_helper_suspend(&dev_priv->drm);
 	ret = PTR_ERR_OR_ZERO(state);
 	if (ret)
 		DRM_ERROR("Suspending crtc's failed with %i\n", ret);
