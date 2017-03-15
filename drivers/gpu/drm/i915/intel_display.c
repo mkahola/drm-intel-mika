@@ -14984,24 +14984,23 @@ fail:
 	drm_modeset_acquire_fini(&ctx);
 }
 
-int intel_modeset_init(struct drm_device *dev)
+int intel_modeset_init(struct drm_i915_private *dev_priv)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
 	struct i915_ggtt *ggtt = &dev_priv->ggtt;
 	enum pipe pipe;
 	struct intel_crtc *crtc;
 
-	drm_mode_config_init(dev);
+	drm_mode_config_init(&dev_priv->drm);
 
-	dev->mode_config.min_width = 0;
-	dev->mode_config.min_height = 0;
+	dev_priv->drm.mode_config.min_width = 0;
+	dev_priv->drm.mode_config.min_height = 0;
 
-	dev->mode_config.preferred_depth = 24;
-	dev->mode_config.prefer_shadow = 1;
+	dev_priv->drm.mode_config.preferred_depth = 24;
+	dev_priv->drm.mode_config.prefer_shadow = 1;
 
-	dev->mode_config.allow_fb_modifiers = true;
+	dev_priv->drm.mode_config.allow_fb_modifiers = true;
 
-	dev->mode_config.funcs = &intel_mode_funcs;
+	dev_priv->drm.mode_config.funcs = &intel_mode_funcs;
 
 	init_llist_head(&dev_priv->atomic_helper.free_list);
 	INIT_WORK(&dev_priv->atomic_helper.free_work,
@@ -15033,28 +15032,28 @@ int intel_modeset_init(struct drm_device *dev)
 	}
 
 	if (IS_GEN2(dev_priv)) {
-		dev->mode_config.max_width = 2048;
-		dev->mode_config.max_height = 2048;
+		dev_priv->drm.mode_config.max_width = 2048;
+		dev_priv->drm.mode_config.max_height = 2048;
 	} else if (IS_GEN3(dev_priv)) {
-		dev->mode_config.max_width = 4096;
-		dev->mode_config.max_height = 4096;
+		dev_priv->drm.mode_config.max_width = 4096;
+		dev_priv->drm.mode_config.max_height = 4096;
 	} else {
-		dev->mode_config.max_width = 8192;
-		dev->mode_config.max_height = 8192;
+		dev_priv->drm.mode_config.max_width = 8192;
+		dev_priv->drm.mode_config.max_height = 8192;
 	}
 
 	if (IS_I845G(dev_priv) || IS_I865G(dev_priv)) {
-		dev->mode_config.cursor_width = IS_I845G(dev_priv) ? 64 : 512;
-		dev->mode_config.cursor_height = 1023;
+		dev_priv->drm.mode_config.cursor_width = IS_I845G(dev_priv) ? 64 : 512;
+		dev_priv->drm.mode_config.cursor_height = 1023;
 	} else if (IS_GEN2(dev_priv)) {
-		dev->mode_config.cursor_width = GEN2_CURSOR_WIDTH;
-		dev->mode_config.cursor_height = GEN2_CURSOR_HEIGHT;
+		dev_priv->drm.mode_config.cursor_width = GEN2_CURSOR_WIDTH;
+		dev_priv->drm.mode_config.cursor_height = GEN2_CURSOR_HEIGHT;
 	} else {
-		dev->mode_config.cursor_width = MAX_CURSOR_WIDTH;
-		dev->mode_config.cursor_height = MAX_CURSOR_HEIGHT;
+		dev_priv->drm.mode_config.cursor_width = MAX_CURSOR_WIDTH;
+		dev_priv->drm.mode_config.cursor_height = MAX_CURSOR_HEIGHT;
 	}
 
-	dev->mode_config.fb_base = ggtt->mappable_base;
+	dev_priv->drm.mode_config.fb_base = ggtt->mappable_base;
 
 	DRM_DEBUG_KMS("%d display pipe%s available.\n",
 		      INTEL_INFO(dev_priv)->num_pipes,
@@ -15065,12 +15064,12 @@ int intel_modeset_init(struct drm_device *dev)
 
 		ret = intel_crtc_init(dev_priv, pipe);
 		if (ret) {
-			drm_mode_config_cleanup(dev);
+			drm_mode_config_cleanup(&dev_priv->drm);
 			return ret;
 		}
 	}
 
-	intel_shared_dpll_init(dev);
+	intel_shared_dpll_init(&dev_priv->drm);
 
 	intel_update_czclk(dev_priv);
 	intel_modeset_init_hw(dev_priv);
@@ -15082,11 +15081,11 @@ int intel_modeset_init(struct drm_device *dev)
 	i915_disable_vga(dev_priv);
 	intel_setup_outputs(dev_priv);
 
-	drm_modeset_lock_all(dev);
+	drm_modeset_lock_all(&dev_priv->drm);
 	intel_modeset_setup_hw_state(dev_priv);
-	drm_modeset_unlock_all(dev);
+	drm_modeset_unlock_all(&dev_priv->drm);
 
-	for_each_intel_crtc(dev, crtc) {
+	for_each_intel_crtc(&dev_priv->drm, crtc) {
 		struct intel_initial_plane_config plane_config = {};
 
 		if (!crtc->active)
@@ -15115,7 +15114,7 @@ int intel_modeset_init(struct drm_device *dev)
 	 * since the watermark calculation done here will use pstate->fb.
 	 */
 	if (!HAS_GMCH_DISPLAY(dev_priv))
-		sanitize_watermarks(dev);
+		sanitize_watermarks(&dev_priv->drm);
 
 	return 0;
 }
