@@ -3432,11 +3432,11 @@ static void intel_complete_page_flips(struct drm_i915_private *dev_priv)
 		intel_finish_page_flip_cs(dev_priv, crtc->pipe);
 }
 
-static void intel_update_primary_planes(struct drm_device *dev)
+static void intel_update_primary_planes(struct drm_i915_private *dev_priv)
 {
 	struct drm_crtc *crtc;
 
-	for_each_crtc(dev, crtc) {
+	for_each_crtc(&dev_priv->drm, crtc) {
 		struct intel_plane *plane = to_intel_plane(crtc->primary);
 		struct intel_plane_state *plane_state =
 			to_intel_plane_state(plane->base.state);
@@ -3573,7 +3573,7 @@ void intel_finish_reset(struct drm_i915_private *dev_priv)
 			 * FIXME: Atomic will make this obsolete since we won't schedule
 			 * CS-based flips (which might get lost in gpu resets) any more.
 			 */
-			intel_update_primary_planes(dev);
+			intel_update_primary_planes(dev_priv);
 		} else {
 			ret = __intel_display_resume(dev_priv, state, ctx);
 			if (ret)
