@@ -12314,11 +12314,10 @@ verify_single_dpll_state(struct drm_i915_private *dev_priv,
 }
 
 static void
-verify_shared_dpll_state(struct drm_device *dev, struct drm_crtc *crtc,
+verify_shared_dpll_state(struct drm_i915_private *dev_priv, struct drm_crtc *crtc,
 			 struct drm_crtc_state *old_crtc_state,
 			 struct drm_crtc_state *new_crtc_state)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
 	struct intel_crtc_state *old_state = to_intel_crtc_state(old_crtc_state);
 	struct intel_crtc_state *new_state = to_intel_crtc_state(new_crtc_state);
 
@@ -12345,6 +12344,8 @@ intel_modeset_verify_crtc(struct drm_crtc *crtc,
 			  struct drm_crtc_state *old_state,
 			  struct drm_crtc_state *new_state)
 {
+	struct drm_i915_private *dev_priv = to_i915(crtc->dev);
+
 	if (!needs_modeset(new_state) &&
 	    !to_intel_crtc_state(new_state)->update_pipe)
 		return;
@@ -12352,7 +12353,7 @@ intel_modeset_verify_crtc(struct drm_crtc *crtc,
 	verify_wm_state(crtc, new_state);
 	verify_connector_state(crtc->dev, state, crtc);
 	verify_crtc_state(crtc, old_state, new_state);
-	verify_shared_dpll_state(crtc->dev, crtc, old_state, new_state);
+	verify_shared_dpll_state(dev_priv, crtc, old_state, new_state);
 }
 
 static void
