@@ -3805,7 +3805,7 @@ void intel_device_info_dump(struct drm_i915_private *dev_priv);
 extern void intel_modeset_init_hw(struct drm_i915_private *dev_priv);
 extern int intel_modeset_init(struct drm_i915_private *dev_priv);
 extern void intel_modeset_gem_init(struct drm_device *dev);
-extern void intel_modeset_cleanup(struct drm_device *dev);
+extern void intel_modeset_cleanup(struct drm_i915_private *dev_priv);
 extern int intel_connector_register(struct drm_connector *);
 extern void intel_connector_unregister(struct drm_connector *);
 extern int intel_modeset_vga_set_state(struct drm_i915_private *dev_priv,

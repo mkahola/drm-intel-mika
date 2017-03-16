@@ -15690,10 +15690,8 @@ void intel_connector_unregister(struct drm_connector *connector)
 	intel_panel_destroy_backlight(connector);
 }
 
-void intel_modeset_cleanup(struct drm_device *dev)
+void intel_modeset_cleanup(struct drm_i915_private *dev_priv)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
-
 	flush_work(&dev_priv->atomic_helper.free_work);
 	WARN_ON(!llist_empty(&dev_priv->atomic_helper.free_list));
 
@@ -15710,7 +15708,7 @@ void intel_modeset_cleanup(struct drm_device *dev)
 	 * Due to the hpd irq storm handling the hotplug work can re-arm the
 	 * poll handlers. Hence disable polling after hpd handling is shut down.
 	 */
-	drm_kms_helper_poll_fini(dev);
+	drm_kms_helper_poll_fini(&dev_priv->drm);
 
 	intel_unregister_dsm_handler();
 
@@ -15719,7 +15717,7 @@ void intel_modeset_cleanup(struct drm_device *dev)
 	/* flush any delayed tasks or pending work */
 	flush_scheduled_work();
 
-	drm_mode_config_cleanup(dev);
+	drm_mode_config_cleanup(&dev_priv->drm);
 
 	intel_cleanup_overlay(dev_priv);
 
