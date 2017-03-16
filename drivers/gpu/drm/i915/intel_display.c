@@ -6023,10 +6023,9 @@ static int pipe_required_fdi_lanes(struct intel_crtc_state *crtc_state)
 	return 0;
 }
 
-static int ironlake_check_fdi_lanes(struct drm_device *dev, enum pipe pipe,
+static int ironlake_check_fdi_lanes(struct drm_i915_private *dev_priv, enum pipe pipe,
 				     struct intel_crtc_state *pipe_config)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
 	struct drm_atomic_state *state = pipe_config->base.state;
 	struct intel_crtc *other_crtc;
 	struct intel_crtc_state *other_crtc_state;
@@ -6099,7 +6098,7 @@ static int ironlake_check_fdi_lanes(struct drm_device *dev, enum pipe pipe,
 static int ironlake_fdi_compute_config(struct intel_crtc *intel_crtc,
 				       struct intel_crtc_state *pipe_config)
 {
-	struct drm_device *dev = intel_crtc->base.dev;
+	struct drm_i915_private *dev_priv = to_i915(intel_crtc->base.dev);
 	const struct drm_display_mode *adjusted_mode = &pipe_config->base.adjusted_mode;
 	int lane, link_bw, fdi_dotclock, ret;
 	bool needs_recompute = false;
@@ -6112,7 +6111,7 @@ retry:
 	 * Hence the bw of each lane in terms of the mode signal
 	 * is:
 	 */
-	link_bw = intel_fdi_link_freq(to_i915(dev), pipe_config);
+	link_bw = intel_fdi_link_freq(dev_priv, pipe_config);
 
 	fdi_dotclock = adjusted_mode->crtc_clock;
 
@@ -6124,7 +6123,7 @@ retry:
 	intel_link_compute_m_n(pipe_config->pipe_bpp, lane, fdi_dotclock,
 			       link_bw, &pipe_config->fdi_m_n, false);
 
-	ret = ironlake_check_fdi_lanes(dev, intel_crtc->pipe, pipe_config);
+	ret = ironlake_check_fdi_lanes(dev_priv, intel_crtc->pipe, pipe_config);
 	if (ret == -EINVAL && pipe_config->pipe_bpp > 6*3) {
 		pipe_config->pipe_bpp -= 2*3;
 		DRM_DEBUG_KMS("fdi link bw constraint, reducing pipe bpp to %i\n",
