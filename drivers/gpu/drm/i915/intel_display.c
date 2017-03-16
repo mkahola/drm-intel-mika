@@ -15116,7 +15116,7 @@ int intel_modeset_init(struct drm_i915_private *dev_priv)
 	return 0;
 }
 
-static void intel_enable_pipe_a(struct drm_device *dev)
+static void intel_enable_pipe_a(struct drm_i915_private *dev_priv)
 {
 	struct intel_connector *connector;
 	struct drm_connector_list_iter conn_iter;
@@ -15128,7 +15128,7 @@ static void intel_enable_pipe_a(struct drm_device *dev)
 	/* We can't just switch on the pipe A, we need to set things up with a
 	 * proper mode and output configuration. As a gross hack, enable pipe A
 	 * by enabling the load detect pipe once. */
-	drm_connector_list_iter_begin(dev, &conn_iter);
+	drm_connector_list_iter_begin(&dev_priv->drm, &conn_iter);
 	for_each_intel_connector_iter(connector, &conn_iter) {
 		if (connector->encoder->type == INTEL_OUTPUT_ANALOG) {
 			crt = &connector->base;
@@ -15250,7 +15250,7 @@ static void intel_sanitize_crtc(struct intel_crtc *crtc)
 		 * resume. Force-enable the pipe to fix this, the update_dpms
 		 * call below we restore the pipe to the right state, but leave
 		 * the required bits on. */
-		intel_enable_pipe_a(dev);
+		intel_enable_pipe_a(dev_priv);
 	}
 
 	/* Adjust the state of the output pipe according to whether we
