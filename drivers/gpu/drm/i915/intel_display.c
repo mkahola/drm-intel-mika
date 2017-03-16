@@ -9591,7 +9591,7 @@ intel_framebuffer_size_for_mode(struct drm_display_mode *mode, int bpp)
 }
 
 static struct drm_framebuffer *
-intel_framebuffer_create_for_mode(struct drm_device *dev,
+intel_framebuffer_create_for_mode(struct drm_i915_private *dev_priv,
 				  struct drm_display_mode *mode,
 				  int depth, int bpp)
 {
@@ -9599,7 +9599,7 @@ intel_framebuffer_create_for_mode(struct drm_device *dev,
 	struct drm_i915_gem_object *obj;
 	struct drm_mode_fb_cmd2 mode_cmd = { 0 };
 
-	obj = i915_gem_object_create(to_i915(dev),
+	obj = i915_gem_object_create(dev_priv,
 				    intel_framebuffer_size_for_mode(mode, bpp));
 	if (IS_ERR(obj))
 		return ERR_CAST(obj);
@@ -9618,11 +9618,10 @@ intel_framebuffer_create_for_mode(struct drm_device *dev,
 }
 
 static struct drm_framebuffer *
-mode_fits_in_fbdev(struct drm_device *dev,
+mode_fits_in_fbdev(struct drm_i915_private *dev_priv,
 		   struct drm_display_mode *mode)
 {
 #ifdef CONFIG_DRM_FBDEV_EMULATION
-	struct drm_i915_private *dev_priv = to_i915(dev);
 	struct drm_i915_gem_object *obj;
 	struct drm_framebuffer *fb;
 
@@ -9808,10 +9807,10 @@ found:
 	 * not even exist) or that it is large enough to satisfy the
 	 * requested mode.
 	 */
-	fb = mode_fits_in_fbdev(dev, mode);
+	fb = mode_fits_in_fbdev(dev_priv, mode);
 	if (fb == NULL) {
 		DRM_DEBUG_KMS("creating tmp fb for load-detection\n");
-		fb = intel_framebuffer_create_for_mode(dev, mode, 24, 32);
+		fb = intel_framebuffer_create_for_mode(dev_priv, mode, 24, 32);
 	} else
 		DRM_DEBUG_KMS("reusing fbdev for load-detection framebuffer\n");
 	if (IS_ERR(fb)) {
