@@ -9891,10 +9891,9 @@ void intel_release_load_detect_pipe(struct drm_connector *connector,
 	drm_atomic_state_put(state);
 }
 
-static int i9xx_pll_refclk(struct drm_device *dev,
+static int i9xx_pll_refclk(struct drm_i915_private *dev_priv,
 			   const struct intel_crtc_state *pipe_config)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
 	u32 dpll = pipe_config->dpll_hw_state.dpll;
 
 	if ((dpll & PLL_REF_INPUT_MASK) == PLLB_REF_INPUT_SPREADSPECTRUMIN)
@@ -9911,14 +9910,13 @@ static int i9xx_pll_refclk(struct drm_device *dev,
 static void i9xx_crtc_clock_get(struct intel_crtc *crtc,
 				struct intel_crtc_state *pipe_config)
 {
-	struct drm_device *dev = crtc->base.dev;
-	struct drm_i915_private *dev_priv = to_i915(dev);
+	struct drm_i915_private *dev_priv = to_i915(crtc->base.dev);
 	int pipe = pipe_config->cpu_transcoder;
 	u32 dpll = pipe_config->dpll_hw_state.dpll;
 	u32 fp;
 	struct dpll clock;
 	int port_clock;
-	int refclk = i9xx_pll_refclk(dev, pipe_config);
+	int refclk = i9xx_pll_refclk(dev_priv, pipe_config);
 
 	if ((dpll & DISPLAY_RATE_SELECT_FPA1) == 0)
 		fp = pipe_config->dpll_hw_state.fp0;
