@@ -4418,9 +4418,8 @@ static void ironlake_pch_transcoder_set_timings(struct intel_crtc *crtc,
 		   I915_READ(VSYNCSHIFT(cpu_transcoder)));
 }
 
-static void cpt_set_fdi_bc_bifurcation(struct drm_device *dev, bool enable)
+static void cpt_set_fdi_bc_bifurcation(struct drm_i915_private *dev_priv, bool enable)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
 	uint32_t temp;
 
 	temp = I915_READ(SOUTH_CHICKEN1);
@@ -4441,20 +4440,20 @@ static void cpt_set_fdi_bc_bifurcation(struct drm_device *dev, bool enable)
 
 static void ivybridge_update_fdi_bc_bifurcation(struct intel_crtc *intel_crtc)
 {
-	struct drm_device *dev = intel_crtc->base.dev;
+	struct drm_i915_private *dev_priv = to_i915(intel_crtc->base.dev);
 
 	switch (intel_crtc->pipe) {
 	case PIPE_A:
 		break;
 	case PIPE_B:
 		if (intel_crtc->config->fdi_lanes > 2)
-			cpt_set_fdi_bc_bifurcation(dev, false);
+			cpt_set_fdi_bc_bifurcation(dev_priv, false);
 		else
-			cpt_set_fdi_bc_bifurcation(dev, true);
+			cpt_set_fdi_bc_bifurcation(dev_priv, true);
 
 		break;
 	case PIPE_C:
-		cpt_set_fdi_bc_bifurcation(dev, true);
+		cpt_set_fdi_bc_bifurcation(dev_priv, true);
 
 		break;
 	default:
