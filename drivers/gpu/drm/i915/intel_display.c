@@ -4593,9 +4593,8 @@ static void lpt_pch_enable(const struct intel_crtc_state *crtc_state)
 	lpt_enable_pch_transcoder(dev_priv, cpu_transcoder);
 }
 
-static void cpt_verify_modeset(struct drm_device *dev, int pipe)
+static void cpt_verify_modeset(struct drm_i915_private *dev_priv, int pipe)
 {
-	struct drm_i915_private *dev_priv = to_i915(dev);
 	i915_reg_t dslreg = PIPEDSL(pipe);
 	u32 temp;
 
@@ -5304,7 +5303,7 @@ static void ironlake_crtc_enable(struct intel_crtc_state *pipe_config,
 	intel_encoders_enable(crtc, pipe_config, old_state);
 
 	if (HAS_PCH_CPT(dev_priv))
-		cpt_verify_modeset(dev, intel_crtc->pipe);
+		cpt_verify_modeset(dev_priv, intel_crtc->pipe);
 
 	/* Must wait for vblank to avoid spurious PCH FIFO underruns */
 	if (intel_crtc->config->has_pch_encoder)
