@@ -1323,6 +1323,19 @@ bool skl_plane_has_ccs(struct drm_i915_private *dev_priv,
 		 plane_id == PLANE_SPRITE0);
 }
 
+static uint32_t nv12_plane_formats[] = {
+	DRM_FORMAT_RGB565,
+	DRM_FORMAT_ABGR8888,
+	DRM_FORMAT_ARGB8888,
+	DRM_FORMAT_XBGR8888,
+	DRM_FORMAT_XRGB8888,
+	DRM_FORMAT_YUYV,
+	DRM_FORMAT_YVYU,
+	DRM_FORMAT_UYVY,
+	DRM_FORMAT_VYUY,
+	DRM_FORMAT_NV12,
+};
+
 struct intel_plane *
 intel_sprite_plane_create(struct drm_i915_private *dev_priv,
 			  enum pipe pipe, int plane)
@@ -1357,8 +1370,14 @@ intel_sprite_plane_create(struct drm_i915_private *dev_priv,
 		intel_plane->disable_plane = skl_disable_plane;
 		intel_plane->get_hw_state = skl_plane_get_hw_state;
 
-		plane_formats = skl_plane_formats;
-		num_plane_formats = ARRAY_SIZE(skl_plane_formats);
+		if ((IS_BROXTON(dev_priv) || IS_KABYLAKE(dev_priv)) &&
+			(pipe == PIPE_A || pipe == PIPE_B) && plane == 0) {
+			plane_formats = nv12_plane_formats;
+			num_plane_formats = ARRAY_SIZE(nv12_plane_formats);
+		} else {
+			plane_formats = skl_plane_formats;
+			num_plane_formats = ARRAY_SIZE(skl_plane_formats);
+		}
 
 		if (skl_plane_has_ccs(dev_priv, pipe, PLANE_SPRITE0 + plane))
 			modifiers = skl_plane_format_modifiers_ccs;
