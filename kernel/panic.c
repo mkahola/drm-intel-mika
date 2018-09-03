@@ -461,6 +461,14 @@ void vpanic(const char *fmt, va_list args)
 		dump_stack();
 #endif
 
+#ifdef CONFIG_DEBUG_BUGVERBOSE
+	/*
+	 * Avoid nested stack-dumping if a panic occurs during oops processing
+	 */
+	if (!test_taint(TAINT_DIE) && oops_in_progress <= 1)
+		dump_stack();
+#endif
+
 	kmsg_dump_desc(KMSG_DUMP_PANIC, buf);
 
 	/*
