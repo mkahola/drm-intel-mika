@@ -195,7 +195,7 @@ void drm_mode_config_reset(struct drm_device *dev)
 			crtc->funcs->reset(crtc);
 
 	drm_for_each_encoder(encoder, dev)
-		if (encoder->funcs->reset)
+		if (encoder->funcs && encoder->funcs->reset)
 			encoder->funcs->reset(encoder);
 
 	drm_connector_list_iter_begin(dev, &conn_iter);
@@ -625,6 +625,7 @@ static void validate_encoder_possible_crtcs(struct drm_encoder *encoder)
 void drm_mode_config_validate(struct drm_device *dev)
 {
 	struct drm_encoder *encoder;
+	struct drm_crtc *crtc;
 
 	if (!drm_core_check_feature(dev, DRIVER_MODESET))
 		return;
@@ -635,5 +636,23 @@ void drm_mode_config_validate(struct drm_device *dev)
 	drm_for_each_encoder(encoder, dev) {
 		validate_encoder_possible_clones(encoder);
 		validate_encoder_possible_crtcs(encoder);
+	}
+
+	drm_for_each_crtc(crtc, dev) {
+		WARN(!crtc->primary, "Missing primary plane on [CRTC:%d:%s]\n",
+		     crtc->base.id, crtc->name);
+
+		if (crtc->primary) {
+			WARN(!(crtc->primary->possible_crtcs & drm_crtc_mask(crtc)),
+			     "Bogus primary plane possible_crtcs: [PLANE:%d:%s] must be compatible with [CRTC:%d:%s]\n",
+			     crtc->primary->base.id, crtc->primary->name,
+			     crtc->base.id, crtc->name);
+		}
+		if (crtc->cursor) {
+			WARN(!(crtc->cursor->possible_crtcs & drm_crtc_mask(crtc)),
+			     "Bogus cursor plane possible_crtcs: [PLANE:%d:%s] must be compatible with [CRTC:%d:%s]\n",
+			     crtc->cursor->base.id, crtc->cursor->name,
+			     crtc->base.id, crtc->name);
+		}
 	}
 }
