@@ -194,8 +194,7 @@ static const struct xe_device_desc adl_s_desc = {
 	.dma_mask_size = 39,
 	.has_display = true,
 	.has_llc = true,
-	.has_sriov = true,
-	.max_gt_per_tile = 1,
+	.has_sriov = IS_ENABLED(CONFIG_DRM_XE_DEBUG),
 	.require_force_probe = true,
 	.subplatforms = (const struct xe_subplatform_desc[]) {
 		{ XE_SUBPLATFORM_ALDERLAKE_S_RPLS, "RPLS", adls_rpls_ids },
@@ -212,8 +211,7 @@ static const struct xe_device_desc adl_p_desc = {
 	.dma_mask_size = 39,
 	.has_display = true,
 	.has_llc = true,
-	.has_sriov = true,
-	.max_gt_per_tile = 1,
+	.has_sriov = IS_ENABLED(CONFIG_DRM_XE_DEBUG),
 	.require_force_probe = true,
 	.subplatforms = (const struct xe_subplatform_desc[]) {
 		{ XE_SUBPLATFORM_ALDERLAKE_P_RPLU, "RPLU", adlp_rplu_ids },
@@ -228,8 +226,7 @@ static const struct xe_device_desc adl_n_desc = {
 	.dma_mask_size = 39,
 	.has_display = true,
 	.has_llc = true,
-	.has_sriov = true,
-	.max_gt_per_tile = 1,
+	.has_sriov = IS_ENABLED(CONFIG_DRM_XE_DEBUG),
 	.require_force_probe = true,
 };
 
@@ -274,7 +271,7 @@ static const struct xe_device_desc ats_m_desc = {
 
 	DG2_FEATURES,
 	.has_display = false,
-	.has_sriov = true,
+	.has_sriov = IS_ENABLED(CONFIG_DRM_XE_DEBUG),
 };
 
 static const struct xe_device_desc dg2_desc = {

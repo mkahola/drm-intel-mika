@@ -33,14 +33,14 @@
 #define DEFAULT_SVM_NOTIFIER_SIZE	512
 
 struct xe_modparam xe_modparam = {
-	.probe_display =	DEFAULT_PROBE_DISPLAY,
-	.guc_log_level =	DEFAULT_GUC_LOG_LEVEL,
-	.force_probe =		DEFAULT_FORCE_PROBE,
+	.probe_display = true,
+	.guc_log_level = 3,
+	.force_probe = CONFIG_DRM_XE_FORCE_PROBE,
 #ifdef CONFIG_PCI_IOV
-	.max_vfs =		DEFAULT_MAX_VFS,
+	.max_vfs = IS_ENABLED(CONFIG_DRM_XE_DEBUG) ? ~0 : 0,
 #endif
-	.wedged_mode =		DEFAULT_WEDGED_MODE,
-	.svm_notifier_size =	DEFAULT_SVM_NOTIFIER_SIZE,
+	.wedged_mode = 1,
+	.svm_notifier_size = 512,
 	/* the rest are 0 by default */
 };
 
