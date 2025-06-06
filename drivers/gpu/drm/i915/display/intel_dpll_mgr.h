@@ -169,6 +169,22 @@ enum intel_dpll_id {
 	 * @DPLL_ID_DG1_DPLL3: DG1 combo PHY DPLL3
 	 */
 	DPLL_ID_DG1_DPLL3 = 3,
+	/**
+	 * @DPLL_ID_MTL_PLL1: MTL PICA PLL 1
+	 */
+	DPLL_ID_MTL_PLL1 = 1,
+	/**
+	 * @DPLL_ID_MTL_PLL2: MTL PICA PLL 2
+	 */
+	DPLL_ID_MTL_PLL2 = 2,
+	/**
+	 * @DPLL_ID_MTL_PLL3: MTL PICA PLL 3
+	 */
+	DPLL_ID_MTL_PLL3 = 3,
+	/**
+	 * @DPLL_ID_MTL_PLL4: MTL PICA PLL 4
+	 */
+	DPLL_ID_MTL_PLL4 = 4,
 };
 
 #define I915_NUM_PLLS 9
