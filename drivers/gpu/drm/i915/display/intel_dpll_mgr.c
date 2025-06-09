@@ -4317,8 +4317,52 @@ static const struct dpll_info mtl_plls[] = {
 	{}
 };
 
+static enum mtl_port_dpll_id mtl_tc_port_to_pll_id(enum tc_port tc_port)
+{
+	return tc_port - TC_PORT_1 + PORT_TC1;
+}
+
+/**
+ * mtl_set_active_port_dpll - select the active port DPLL for a given CRTC
+ * @crtc_state: state for the CRTC to select the DPLL for
+ * @port_dpll_id: the active @port_dpll_id to select
+ *
+ * Select the given @port_dpll_id instance from the DPLLs reserved for the
+ * CRTC.
+ */
+void mtl_set_active_port_dpll(struct intel_crtc_state *crtc_state,
+			      enum mtl_port_dpll_id port_dpll_id)
+{
+	struct mtl_port_dpll *port_dpll =
+		&crtc_state->mtl_port_dplls[port_dpll_id];
+
+	crtc_state->intel_dpll = port_dpll->pll;
+	crtc_state->dpll_hw_state = port_dpll->hw_state;
+}
+
+static int mtl_compute_dplls(struct intel_atomic_state *state,
+			     struct intel_crtc *crtc,
+			     struct intel_encoder *encoder)
+{
+	struct intel_crtc_state *crtc_state =
+		intel_atomic_get_new_crtc_state(state, crtc);
+	const struct intel_crtc_state *old_crtc_state =
+		intel_atomic_get_old_crtc_state(state, crtc);
+
+	intel_cx0pll_calc_state(crtc_state, encoder);
+
+	/* this is mainly for the fastset check */
+	if (old_crtc_state->intel_dpll)
+		mtl_set_active_port_dpll(crtc_state, mtl_tc_port_to_pll_id(intel_encoder_to_tc(encoder)));
+
+	crtc_state->port_clock = intel_cx0pll_calc_port_clock(encoder, &crtc_state->dpll_hw_state.cx0pll);
+
+	return 0;
+}
+
 static const struct intel_dpll_mgr mtl_pll_mgr = {
 	.dpll_info = mtl_plls,
+	.compute_dplls = mtl_compute_dplls,
 };
 
 /**

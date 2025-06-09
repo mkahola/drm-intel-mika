@@ -196,6 +196,15 @@ enum icl_port_dpll_id {
 	ICL_PORT_DPLL_COUNT,
 };
 
+enum mtl_port_dpll_id {
+	MTL_PORT_DPLL_DEFAULT,
+	MTL_PORT_DPLL_2,
+	MTL_PORT_DPLL_3,
+	MTL_PORT_DPLL_4,
+
+	MTL_PORT_DPLL_COUNT,
+};
+
 struct i9xx_dpll_hw_state {
 	u32 dpll;
 	u32 dpll_md;
@@ -425,6 +434,8 @@ void intel_dpll_crtc_put(const struct intel_crtc *crtc,
 			 struct intel_dpll_state *shared_dpll_state);
 void icl_set_active_port_dpll(struct intel_crtc_state *crtc_state,
 			      enum icl_port_dpll_id port_dpll_id);
+void mtl_set_active_port_dpll(struct intel_crtc_state *crtc_state,
+			      enum mtl_port_dpll_id port_dpll_id);
 void intel_dpll_update_active(struct intel_atomic_state *state,
 			      struct intel_crtc *crtc,
 			      struct intel_encoder *encoder);
