@@ -4419,10 +4419,37 @@ err_unreference_pll:
 	return ret;
 }
 
+static void mtl_put_dplls(struct intel_atomic_state *state,
+			  struct intel_crtc *crtc)
+{
+	const struct intel_crtc_state *old_crtc_state =
+		intel_atomic_get_old_crtc_state(state, crtc);
+	struct intel_crtc_state *new_crtc_state =
+		intel_atomic_get_new_crtc_state(state, crtc);
+	enum mtl_port_dpll_id id;
+
+	new_crtc_state->intel_dpll = NULL;
+
+	for (id = MTL_PORT_DPLL_DEFAULT; id < MTL_PORT_DPLL_COUNT; id++) {
+		const struct mtl_port_dpll *old_port_dpll =
+			&old_crtc_state->mtl_port_dplls[id];
+		struct mtl_port_dpll *new_port_dpll =
+			&new_crtc_state->mtl_port_dplls[id];
+
+		new_port_dpll->pll = NULL;
+
+		if (!old_port_dpll->pll)
+			continue;
+
+		intel_unreference_dpll(state, crtc, old_port_dpll->pll);
+	}
+}
+
 static const struct intel_dpll_mgr mtl_pll_mgr = {
 	.dpll_info = mtl_plls,
 	.compute_dplls = mtl_compute_dplls,
 	.get_dplls = mtl_get_dplls,
+	.put_dplls = mtl_put_dplls,
 };
 
 /**
