@@ -4450,6 +4450,7 @@ static const struct intel_dpll_mgr mtl_pll_mgr = {
 	.compute_dplls = mtl_compute_dplls,
 	.get_dplls = mtl_get_dplls,
 	.put_dplls = mtl_put_dplls,
+	.update_active_dpll = mtl_update_active_dpll,
 };
 
 /**
