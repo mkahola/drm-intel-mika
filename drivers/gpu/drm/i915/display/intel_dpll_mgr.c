@@ -4306,17 +4306,6 @@ static const struct intel_dpll_mgr adlp_pll_mgr = {
 	.compare_hw_state = icl_compare_hw_state,
 };
 
-static const struct intel_dpll_funcs mtl_pll_funcs = {
-};
-
-static const struct dpll_info mtl_plls[] = {
-	{ .name = "MTL TC PLL 1", .funcs = &mtl_pll_funcs, .id = DPLL_ID_MTL_PLL1, },
-	{ .name = "MTL TC PLL 2", .funcs = &mtl_pll_funcs, .id = DPLL_ID_MTL_PLL2, },
-	{ .name = "MTL TC PLL 3", .funcs = &mtl_pll_funcs, .id = DPLL_ID_MTL_PLL3, },
-	{ .name = "MTL TC PLL 4", .funcs = &mtl_pll_funcs, .id = DPLL_ID_MTL_PLL4, },
-	{}
-};
-
 static enum intel_dpll_id mtl_tc_port_to_intel_pll_id(enum tc_port tc_port)
 {
 	return tc_port - TC_PORT_1 + PORT_TC1;
@@ -4326,6 +4315,48 @@ static enum mtl_port_dpll_id mtl_tc_port_to_pll_id(enum tc_port tc_port)
 {
 	return tc_port - TC_PORT_1 + PORT_TC1;
 }
+
+static struct intel_encoder * get_intel_encoder(struct intel_display *display,
+						struct intel_dpll *pll)
+{
+	struct intel_encoder *encoder;
+	enum tc_port tc_port;
+
+	for_each_intel_encoder(display->drm, encoder) {
+		tc_port = intel_port_to_tc(display, encoder->port);
+		if (mtl_tc_port_to_intel_pll_id(tc_port) == pll->info->id)
+			return encoder;
+	}
+
+	return NULL;
+}
+
+static void mtl_pll_enable(struct intel_display *display,
+			   struct intel_dpll *pll,
+			   const struct intel_dpll_hw_state *dpll_hw_state)
+{
+	struct intel_encoder *encoder = get_intel_encoder(display, pll);
+
+	if (!encoder)
+	{
+		drm_dbg_kms(display->drm, "encoder not found\n");
+		return;
+	}
+
+	intel_mtl_pll_enable(encoder, pll, dpll_hw_state);
+}
+
+static const struct intel_dpll_funcs mtl_pll_funcs = {
+	.enable = mtl_pll_enable,
+};
+
+static const struct dpll_info mtl_plls[] = {
+	{ .name = "MTL TC PLL 1", .funcs = &mtl_pll_funcs, .id = DPLL_ID_MTL_PLL1, },
+	{ .name = "MTL TC PLL 2", .funcs = &mtl_pll_funcs, .id = DPLL_ID_MTL_PLL2, },
+	{ .name = "MTL TC PLL 3", .funcs = &mtl_pll_funcs, .id = DPLL_ID_MTL_PLL3, },
+	{ .name = "MTL TC PLL 4", .funcs = &mtl_pll_funcs, .id = DPLL_ID_MTL_PLL4, },
+	{}
+};
 
 /**
  * mtl_set_active_port_dpll - select the active port DPLL for a given CRTC
