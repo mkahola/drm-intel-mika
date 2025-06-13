@@ -1547,6 +1547,13 @@ hsw_set_signal_levels(struct intel_encoder *encoder,
 	intel_de_posting_read(display, DDI_BUF_CTL(port));
 }
 
+static void mtl_ddi_enable_clock(struct intel_encoder *encoder,
+				 const struct intel_crtc_state *crtc_state)
+{
+	const struct intel_dpll *dpll = crtc_state->intel_dpll;
+	intel_mtl_pll_enable_clock(encoder, dpll, crtc_state->port_clock);
+}
+
 static void _icl_ddi_enable_clock(struct intel_display *display, i915_reg_t reg,
 				  u32 clk_sel_mask, u32 clk_sel, u32 clk_off)
 {
@@ -5231,7 +5238,7 @@ void intel_ddi_init(struct intel_display *display,
 	encoder->pipe_mask = ~0;
 
 	if (DISPLAY_VER(display) >= 14) {
-		encoder->enable_clock = intel_mtl_pll_enable;
+		encoder->enable_clock = mtl_ddi_enable_clock;
 		encoder->disable_clock = intel_mtl_pll_disable;
 		encoder->port_pll_type = intel_mtl_port_pll_type;
 		encoder->get_config = mtl_ddi_get_config;
