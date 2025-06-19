@@ -4306,7 +4306,7 @@ static const struct intel_dpll_mgr adlp_pll_mgr = {
 	.compare_hw_state = icl_compare_hw_state,
 };
 
-static enum intel_dpll_id mtl_tc_port_to_intel_pll_id(enum tc_port tc_port)
+enum intel_dpll_id mtl_tc_port_to_intel_pll_id(enum tc_port tc_port)
 {
 	return tc_port - TC_PORT_1 + PORT_TC1;
 }
@@ -4346,8 +4346,23 @@ static void mtl_pll_enable(struct intel_display *display,
 	intel_mtl_pll_enable(encoder, pll, dpll_hw_state);
 }
 
+static void mtl_pll_disable(struct intel_display *display,
+			    struct intel_dpll *pll)
+{
+	struct intel_encoder *encoder = get_intel_encoder(display, pll);
+
+	if (!encoder)
+	{
+		drm_dbg_kms(display->drm, "encoder not found\n");
+		return;
+	}
+
+	intel_mtl_pll_disable(encoder, pll);
+}
+
 static const struct intel_dpll_funcs mtl_pll_funcs = {
 	.enable = mtl_pll_enable,
+	.disable = mtl_pll_disable,
 };
 
 static const struct dpll_info mtl_plls[] = {

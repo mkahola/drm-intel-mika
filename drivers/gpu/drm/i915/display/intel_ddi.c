@@ -87,6 +87,8 @@
 #include "skl_scaler.h"
 #include "skl_universal_plane.h"
 
+struct intel_dpll;
+
 static const u8 index_to_dp_signal_levels[] = {
 	[0] = DP_TRAIN_VOLTAGE_SWING_LEVEL_0 | DP_TRAIN_PRE_EMPH_LEVEL_0,
 	[1] = DP_TRAIN_VOLTAGE_SWING_LEVEL_0 | DP_TRAIN_PRE_EMPH_LEVEL_1,
@@ -1552,6 +1554,11 @@ static void mtl_ddi_enable_clock(struct intel_encoder *encoder,
 {
 	const struct intel_dpll *dpll = crtc_state->intel_dpll;
 	intel_mtl_pll_enable_clock(encoder, dpll, crtc_state->port_clock);
+}
+
+static void mtl_ddi_disable_clock(struct intel_encoder *encoder)
+{
+	intel_mtl_pll_disable_clock(encoder);
 }
 
 static void _icl_ddi_enable_clock(struct intel_display *display, i915_reg_t reg,
@@ -5239,7 +5246,7 @@ void intel_ddi_init(struct intel_display *display,
 
 	if (DISPLAY_VER(display) >= 14) {
 		encoder->enable_clock = mtl_ddi_enable_clock;
-		encoder->disable_clock = intel_mtl_pll_disable;
+		encoder->disable_clock = mtl_ddi_disable_clock;
 		encoder->port_pll_type = intel_mtl_port_pll_type;
 		encoder->get_config = mtl_ddi_get_config;
 	} else if (display->platform.dg2) {

@@ -3314,7 +3314,7 @@ static u8 cx0_power_control_disable_val(struct intel_encoder *encoder)
 static void intel_cx0pll_disable(struct intel_encoder *encoder)
 {
 	struct intel_display *display = to_intel_display(encoder);
-	enum phy phy = intel_encoder_to_phy(encoder);
+
 	intel_wakeref_t wakeref = intel_cx0_phy_transaction_begin(encoder);
 
 	/* 1. Change owned PHY lane power to Disable state. */
@@ -3336,6 +3336,15 @@ static void intel_cx0pll_disable(struct intel_encoder *encoder)
 
 	/* 4. Program DDI_CLK_VALFREQ to 0. */
 	intel_de_write(display, DDI_CLK_VALFREQ(encoder->port), 0);
+
+	intel_cx0_phy_transaction_end(encoder, wakeref);
+}
+
+static void intel_cx0pll_disable_clock(struct intel_encoder *encoder)
+{
+	struct intel_display *display = to_intel_display(encoder);
+	enum phy phy = intel_encoder_to_phy(encoder);
+	intel_wakeref_t wakeref = intel_cx0_phy_transaction_begin(encoder);
 
 	/*
 	 * 5. Poll on PORT_CLOCK_CTL PCLK PLL Ack LN<Lane for maxPCLK**> == "0".
@@ -3372,7 +3381,7 @@ static bool intel_cx0_pll_is_enabled(struct intel_encoder *encoder)
 			     intel_cx0_get_pclk_pll_request(lane);
 }
 
-static void intel_mtl_tbt_pll_disable(struct intel_encoder *encoder)
+static void intel_mtl_tbt_pll_disable_clock(struct intel_encoder *encoder)
 {
 	struct intel_display *display = to_intel_display(encoder);
 	enum phy phy = intel_encoder_to_phy(encoder);
@@ -3399,8 +3408,8 @@ static void intel_mtl_tbt_pll_disable(struct intel_encoder *encoder)
 	 * 4. Follow the Display Voltage Frequency Switching Sequence After
 	 * Frequency Change. We handle this step in bxt_set_cdclk().
 	 */
-
 	/*
+
 	 * 5. Program PORT CLOCK CTRL register to disable and gate clocks
 	 */
 	intel_de_rmw(display, XELPDP_PORT_CLOCK_CTL(display, encoder->port),
@@ -3411,14 +3420,22 @@ static void intel_mtl_tbt_pll_disable(struct intel_encoder *encoder)
 	intel_de_write(display, DDI_CLK_VALFREQ(encoder->port), 0);
 }
 
-void intel_mtl_pll_disable(struct intel_encoder *encoder)
+void intel_mtl_pll_disable(struct intel_encoder *encoder, struct intel_dpll *pll)
+{
+	struct intel_digital_port *dig_port = enc_to_dig_port(encoder);
+
+	if (!intel_tc_port_in_tbt_alt_mode(dig_port))
+		intel_cx0pll_disable(encoder);
+}
+
+void intel_mtl_pll_disable_clock(struct intel_encoder *encoder)
 {
 	struct intel_digital_port *dig_port = enc_to_dig_port(encoder);
 
 	if (intel_tc_port_in_tbt_alt_mode(dig_port))
-		intel_mtl_tbt_pll_disable(encoder);
+		intel_mtl_tbt_pll_disable_clock(encoder);
 	else
-		intel_cx0pll_disable(encoder);
+		intel_cx0pll_disable_clock(encoder);
 }
 
 enum icl_port_dpll_id
@@ -3683,5 +3700,6 @@ void intel_cx0_pll_power_save_wa(struct intel_display *display)
 		__intel_cx0pll_enable(encoder, &pll_state, true, port_clock, 4);
 		intel_cx0pll_enable_clock(encoder);
 		intel_cx0pll_disable(encoder);
+		intel_cx0pll_disable_clock(encoder);
 	}
 }
