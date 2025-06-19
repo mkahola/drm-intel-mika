@@ -3303,8 +3303,8 @@ static u8 cx0_power_control_disable_val(struct intel_encoder *encoder)
 static void intel_cx0pll_disable(struct intel_encoder *encoder)
 {
 	struct intel_display *display = to_intel_display(encoder);
-	enum phy phy = intel_encoder_to_phy(encoder);
 	intel_wakeref_t wakeref = intel_cx0_phy_transaction_begin(encoder);
+	enum phy phy = intel_encoder_to_phy(encoder);
 
 	/* 1. Change owned PHY lane power to Disable state. */
 	intel_cx0_powerdown_change_sequence(encoder, INTEL_CX0_BOTH_LANES,
@@ -3388,8 +3388,8 @@ static void intel_mtl_tbt_pll_disable(struct intel_encoder *encoder)
 	 * 4. Follow the Display Voltage Frequency Switching Sequence After
 	 * Frequency Change. We handle this step in bxt_set_cdclk().
 	 */
-
 	/*
+
 	 * 5. Program PORT CLOCK CTRL register to disable and gate clocks
 	 */
 	intel_de_rmw(display, XELPDP_PORT_CLOCK_CTL(display, encoder->port),
@@ -3400,7 +3400,7 @@ static void intel_mtl_tbt_pll_disable(struct intel_encoder *encoder)
 	intel_de_write(display, DDI_CLK_VALFREQ(encoder->port), 0);
 }
 
-void intel_mtl_pll_disable(struct intel_encoder *encoder)
+void intel_mtl_pll_disable_clock(struct intel_encoder *encoder)
 {
 	struct intel_digital_port *dig_port = enc_to_dig_port(encoder);
 
