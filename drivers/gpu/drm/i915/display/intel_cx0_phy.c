@@ -2337,9 +2337,11 @@ intel_c20_pll_tables_get(struct intel_crtc_state *crtc_state,
 static int intel_c20pll_calc_state(struct intel_crtc_state *crtc_state,
 				   struct intel_encoder *encoder)
 {
+	struct intel_display *display = to_intel_display(crtc_state);
 	const struct intel_c20pll_state * const *tables;
 	int i;
 
+	drm_dbg_kms(display->drm, "C20 PLL calc state\n");
 	/* try computed C20 HDMI tables before using consolidated tables */
 	if (intel_crtc_has_type(crtc_state, INTEL_OUTPUT_HDMI)) {
 		if (intel_c20_compute_hdmi_tmds_pll(crtc_state) == 0)
@@ -2654,6 +2656,8 @@ static void intel_c20_pll_program(struct intel_display *display,
 			intel_c20_sram_write(encoder, INTEL_CX0_LANE0,
 					     PHY_C20_B_TX_CNTX_CFG(display, i),
 					     pll_state->tx[i]);
+
+		drm_dbg_kms(display->drm, "C20 PLL tx[%i] = 0x%x\n", i, pll_state->tx[i]);
 	}
 
 	/* 3.2 common configuration */
@@ -2666,6 +2670,7 @@ static void intel_c20_pll_program(struct intel_display *display,
 			intel_c20_sram_write(encoder, INTEL_CX0_LANE0,
 					     PHY_C20_B_CMN_CNTX_CFG(display, i),
 					     pll_state->cmn[i]);
+		drm_dbg_kms(display->drm, "C20 PLL cmn[%i] = 0x%x\n", i, pll_state->cmn[i]);
 	}
 
 	/* 3.3 mpllb or mplla configuration */
@@ -2680,6 +2685,7 @@ static void intel_c20_pll_program(struct intel_display *display,
 						     PHY_C20_B_MPLLB_CNTX_CFG(display, i),
 						     pll_state->mpllb[i]);
 		}
+		drm_dbg_kms(display->drm, "C20 PLL mpllb[%i] = 0x%x\n", i, pll_state->mpllb[i]);
 	} else {
 		for (i = 0; i < ARRAY_SIZE(pll_state->mplla); i++) {
 			if (cntx)
@@ -2691,6 +2697,7 @@ static void intel_c20_pll_program(struct intel_display *display,
 						     PHY_C20_B_MPLLA_CNTX_CFG(display, i),
 						     pll_state->mplla[i]);
 		}
+		drm_dbg_kms(display->drm, "C20 PLL mplla[%i] = 0x%x\n", i, pll_state->mplla[i]);
 	}
 
 	/* 4. Program custom width to match the link protocol */

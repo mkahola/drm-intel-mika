@@ -4321,10 +4321,14 @@ static struct intel_encoder * get_intel_encoder(struct intel_display *display,
 {
 	struct intel_encoder *encoder;
 	enum tc_port tc_port;
+	enum intel_dpll_id mtl_id;
 
 	for_each_intel_encoder(display->drm, encoder) {
 		tc_port = intel_port_to_tc(display, encoder->port);
-		if (mtl_tc_port_to_intel_pll_id(tc_port) == pll->info->id)
+		mtl_id = mtl_tc_port_to_intel_pll_id(tc_port);
+		drm_dbg_kms(display->drm, "encoder [%d:%s], encoder id/pll id %d/%d\n", encoder->base.base.id,
+			    encoder->base.name, mtl_id, pll->info->id);
+		if (mtl_id == pll->info->id)
 			return encoder;
 	}
 
@@ -4454,6 +4458,7 @@ static int mtl_compute_dplls(struct intel_atomic_state *state,
 		intel_atomic_get_new_crtc_state(state, crtc);
 	const struct intel_crtc_state *old_crtc_state =
 		intel_atomic_get_old_crtc_state(state, crtc);
+	struct intel_display *display = to_intel_display(encoder);
 
 	intel_cx0pll_calc_state(crtc_state, encoder);
 
@@ -4463,6 +4468,7 @@ static int mtl_compute_dplls(struct intel_atomic_state *state,
 
 	crtc_state->port_clock = intel_cx0pll_calc_port_clock(encoder, &crtc_state->dpll_hw_state.cx0pll);
 
+	drm_dbg_kms(display->drm, "port clock: %d\n", crtc_state->port_clock);
 	return 0;
 }
 

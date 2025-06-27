@@ -1737,6 +1737,10 @@ int intel_dpll_crtc_compute_clock(struct intel_atomic_state *state,
 	struct intel_crtc_state *crtc_state =
 		intel_atomic_get_new_crtc_state(state, crtc);
 	int ret;
+	struct intel_encoder *encoder =
+		intel_get_crtc_new_encoder(state, crtc_state);
+
+	drm_dbg_kms(display->drm, "encoder [%d:%s]\n", encoder->base.base.id, encoder->base.name);
 
 	drm_WARN_ON(display->drm, !intel_crtc_needs_modeset(crtc_state));
 
