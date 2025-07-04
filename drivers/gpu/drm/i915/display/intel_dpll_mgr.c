@@ -4306,12 +4306,12 @@ static const struct intel_dpll_mgr adlp_pll_mgr = {
 	.compare_hw_state = icl_compare_hw_state,
 };
 
-enum intel_dpll_id mtl_tc_port_to_intel_pll_id(enum tc_port tc_port)
+static enum intel_dpll_id mtl_tc_port_to_intel_pll_id(enum tc_port tc_port)
 {
 	return tc_port - TC_PORT_1 + PORT_TC1;
 }
 
-static enum mtl_port_dpll_id mtl_tc_port_to_pll_id(enum tc_port tc_port)
+enum icl_port_dpll_id mtl_tc_port_to_pll_id(enum tc_port tc_port)
 {
 	return tc_port - TC_PORT_1 + PORT_TC1;
 }
@@ -4416,7 +4416,7 @@ static const struct dpll_info mtl_plls[] = {
  * CRTC.
  */
 void mtl_set_active_port_dpll(struct intel_crtc_state *crtc_state,
-			      enum mtl_port_dpll_id port_dpll_id)
+			      enum icl_port_dpll_id port_dpll_id)
 {
 	struct mtl_port_dpll *port_dpll =
 		&crtc_state->mtl_port_dplls[port_dpll_id];
@@ -4432,7 +4432,7 @@ static void mtl_update_active_dpll(struct intel_atomic_state *state,
 	struct intel_crtc_state *crtc_state =
 		intel_atomic_get_new_crtc_state(state, crtc);
 	struct intel_digital_port *primary_port;
-	enum mtl_port_dpll_id port_dpll_id = MTL_PORT_DPLL_DEFAULT;
+	enum icl_port_dpll_id port_dpll_id = MTL_PORT_DPLL_DEFAULT;
 
 	primary_port = encoder->type == INTEL_OUTPUT_DP_MST ?
 		enc_to_mst(encoder)->primary :
@@ -4506,7 +4506,7 @@ static void mtl_put_dplls(struct intel_atomic_state *state,
 		intel_atomic_get_old_crtc_state(state, crtc);
 	struct intel_crtc_state *new_crtc_state =
 		intel_atomic_get_new_crtc_state(state, crtc);
-	enum mtl_port_dpll_id id;
+	enum icl_port_dpll_id id;
 
 	new_crtc_state->intel_dpll = NULL;
 

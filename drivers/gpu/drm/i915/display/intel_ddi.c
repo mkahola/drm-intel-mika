@@ -1553,7 +1553,13 @@ static void mtl_ddi_enable_clock(struct intel_encoder *encoder,
 				 const struct intel_crtc_state *crtc_state)
 {
 	const struct intel_dpll *dpll = crtc_state->intel_dpll;
+	struct intel_display *display = to_intel_display(encoder);
+
+	mutex_lock(&display->dpll.lock);
+
 	intel_mtl_pll_enable_clock(encoder, dpll, crtc_state->port_clock);
+
+	mutex_unlock(&display->dpll.lock);
 }
 
 static void mtl_ddi_disable_clock(struct intel_encoder *encoder)

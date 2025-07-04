@@ -194,10 +194,8 @@ enum icl_port_dpll_id {
 	ICL_PORT_DPLL_MG_PHY,
 
 	ICL_PORT_DPLL_COUNT,
-};
 
-enum mtl_port_dpll_id {
-	MTL_PORT_DPLL_DEFAULT,
+	MTL_PORT_DPLL_DEFAULT = 0,
 	MTL_PORT_DPLL_2,
 	MTL_PORT_DPLL_3,
 	MTL_PORT_DPLL_4,
@@ -435,7 +433,7 @@ void intel_dpll_crtc_put(const struct intel_crtc *crtc,
 void icl_set_active_port_dpll(struct intel_crtc_state *crtc_state,
 			      enum icl_port_dpll_id port_dpll_id);
 void mtl_set_active_port_dpll(struct intel_crtc_state *crtc_state,
-			      enum mtl_port_dpll_id port_dpll_id);
+			      enum icl_port_dpll_id port_dpll_id);
 void intel_dpll_update_active(struct intel_atomic_state *state,
 			      struct intel_crtc *crtc,
 			      struct intel_encoder *encoder);
@@ -460,7 +458,7 @@ bool intel_dpll_compare_hw_state(struct intel_display *display,
 				 const struct intel_dpll_hw_state *a,
 				 const struct intel_dpll_hw_state *b);
 enum intel_dpll_id icl_tc_port_to_pll_id(enum tc_port tc_port);
-enum intel_dpll_id mtl_tc_port_to_intel_pll_id(enum tc_port tc_port);
+enum icl_port_dpll_id mtl_tc_port_to_pll_id(enum tc_port tc_port);
 bool intel_dpll_is_combophy(enum intel_dpll_id id);
 
 void intel_dpll_state_verify(struct intel_atomic_state *state,
