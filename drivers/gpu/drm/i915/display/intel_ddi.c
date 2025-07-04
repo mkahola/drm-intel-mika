@@ -1553,7 +1553,13 @@ static void mtl_ddi_enable_clock(struct intel_encoder *encoder,
 				 const struct intel_crtc_state *crtc_state)
 {
 	const struct intel_dpll *dpll = crtc_state->intel_dpll;
+	struct intel_display *display = to_intel_display(encoder);
+
+	mutex_lock(&display->dpll.lock);
+
 	intel_mtl_pll_enable_clock(encoder, dpll, crtc_state->port_clock);
+
+	mutex_unlock(&display->dpll.lock);
 }
 
 static void mtl_ddi_disable_clock(struct intel_encoder *encoder)
@@ -5283,11 +5289,11 @@ void intel_ddi_init(struct intel_display *display,
 	if (DISPLAY_VER(display) >= 14) {
 		encoder->enable_clock = mtl_ddi_enable_clock;
 		encoder->disable_clock = mtl_ddi_disable_clock;
-		encoder->port_pll_type = intel_mtl_port_pll_type;
 		if (intel_encoder_is_c10phy(encoder))
 			encoder->get_config = mtl_ddi_c10phy_get_config;
 		else
 			encoder->get_config = mtl_ddi_c20phy_get_config;
+		encoder->port_pll_type = icl_ddi_tc_port_pll_type;
 	} else if (display->platform.dg2) {
 		encoder->enable_clock = intel_mpllb_enable;
 		encoder->disable_clock = intel_mpllb_disable;

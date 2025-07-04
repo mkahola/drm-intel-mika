@@ -30,9 +30,6 @@ void intel_mtl_pll_enable_clock(struct intel_encoder *encoder,
                                 const struct intel_dpll *pll,
                                 int port_clock);
 void intel_mtl_pll_disable_clock(struct intel_encoder *encoder);
-enum icl_port_dpll_id
-intel_mtl_port_pll_type(struct intel_encoder *encoder,
-			const struct intel_crtc_state *crtc_state);
 
 int intel_cx0pll_calc_state(struct intel_crtc_state *crtc_state, struct intel_encoder *encoder,
 			    struct intel_dpll_hw_state *hw_state);
