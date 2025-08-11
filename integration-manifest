@@ -1,30 +1,30 @@
-drm drm-fixes 9fbceb37c95939182e1409211447a1d3f3db9274
-	Merge tag 'drm-misc-fixes-2025-06-26' of https://gitlab.freedesktop.org/drm/misc/kernel into drm-fixes
-drm-misc drm-misc-fixes 7dfede7d7edd18c0c91ca854cde8eaaf4ccf97ea
-	drm/vmwgfx: Fix guests running with TDX/SEV
-drm-intel drm-intel-fixes 8cadce97bf264ed478669c6f32d5603b34608335
-	drm/i915/gsc: mei interrupt top half should be in irq disabled context
-drm-xe drm-xe-fixes af2b588abe006bd55ddd358c4c3b87523349c475
-	drm/xe: Process deferred GGTT node removals on device unwind
-drm drm-next f41830c57bb8e70e283b9db251c95f1270a8279d
-	Merge tag 'drm-misc-next-2025-06-26' of https://gitlab.freedesktop.org/drm/misc/kernel into drm-next
-drm-misc drm-misc-next-fixes fd03f82a026cc03cb8051a8c6487c99f96c9029f
-	drm/bridge: analogix_dp: Fix clk-disable removal
-drm-intel drm-intel-next-fixes 19272b37aa4f83ca52bdf9c16d5d81bdd1354494
-	Linux 6.16-rc1
-drm-xe drm-xe-next-fixes 04c8970771b4f1f39bb8453a2eeb188c4d5edbd6
-	drm/nouveau/vfn/r535: Convert comma to semicolon
-drm-misc drm-misc-next 12853b279100adc7074b51db23bf62a41cb84cb8
-	drm/mipi-dsi: Drop MIPI_DSI_MODE_VSYNC_FLUSH flag
-drm-intel drm-intel-next d5bafb1c294cf99cc5991f7fdecc79898f9b8d0e
-	drm/i915/display: Fix macro HAS_ULTRAJOINER
-drm-intel drm-intel-gt-next dccf655f69002d496a527ba441b4f008aa5bebbf
-	drm/i915/gsc: mei interrupt top half should be in irq disabled context
-drm-xe drm-xe-next a559434880b320b83733d739733250815aecf1b0
-	drm/xe: Allow dropping kunit dependency as built-in
-drm-intel topic/core-for-CI 68c1703d37cfd0577360fc1542a4d2fe8ef86fac
-	iommu/vt-d: Enable ATS before cache tag assignment
-drm-xe topic/xe-for-CI 9b740fabbb7eb6722c78b886d1ae59d2504d855b
-	drm/xe/pm: Re-enable D3Cold by default on BMG
+drm drm-fixes 8f5ae30d69d7543eee0d70083daf4de8fe15d585
+	Linux 6.17-rc1
+drm-misc drm-misc-fixes 01c2afe7358385a5381835293dfb6901f11b1691
+	drm/nouveau: fix typos in comments
+drm-intel drm-intel-fixes 8f5ae30d69d7543eee0d70083daf4de8fe15d585
+	Linux 6.17-rc1
+drm-xe drm-xe-fixes 519575a16fc0976de4838e60cd7aeea985c4c824
+	FOR-DRM-XE-FIXES-TEST-UNBLOCK: platform/x86: asus-wmi: Only register lps0 dev for Ally devices
+drm drm-next 8f5ae30d69d7543eee0d70083daf4de8fe15d585
+	Linux 6.17-rc1
+drm-misc drm-misc-next-fixes 216d6d913861d7f9c840af3c3121717f7f78aabb
+	drm/panfrost: Print RSS for tiler heap BO's in debugfs GEMS file
+drm-intel drm-intel-next-fixes 5a569ef4d4ab184a481dd8ecb58f464a89b44d2f
+	drm/i915/display: Set C10_VDR_CTRL_MSGBUS_ACCESS before phy reg read
+drm-xe drm-xe-next-fixes 022906afdf90327bce33d52fb4fb41b6c7d618fb
+	Mark xe driver as BROKEN if kernel page size is not 4kB
+drm-misc drm-misc-next 1bf30a45653d14b0d88b5ca3c72e0ecf030d9c88
+	drm/nouveau: Remove surplus struct member
+drm-intel drm-intel-next 46fb38cb20c0d185a6391ab524b23e0e0219c41f
+	drm/i915/psr: Do not trigger Frame Change events from frontbuffer flush
+drm-intel drm-intel-gt-next 317be9c64215f264740c6dffb0a44216960875b2
+	drm/i915/gt: Protect against overflow in active_engine()
+drm-xe drm-xe-next 9f8aa0bcd1f35baefe083adfa26bc6f9f68f652b
+	drm/xe/vf: Refactor CCS save/restore to use default migration context
+drm-intel topic/core-for-CI 5d02a8a47924660f5456c0501b4d455546a83d2a
+	usb: early: xhci-dbc: Fix early_ioremap leak
+drm-xe topic/xe-for-CI 7f2f32f161ac0048ade49a2d5db0aab9bae0633a
+	drm/xe/pf: Set VF LMEM BAR size
 drm topic/drm-next-nouveau-r570 6cc6e08d4542473d79ea83d9123d9d35e9c01c92
 	drm/nouveau/kms: add support for GB20x
