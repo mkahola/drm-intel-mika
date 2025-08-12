@@ -1,0 +1,30 @@
+drm drm-fixes 8f5ae30d69d7543eee0d70083daf4de8fe15d585
+	Linux 6.17-rc1
+drm-misc drm-misc-fixes 9af8f2b469c0438620832f3729a3c5c03853b56b
+	drm/panic: Add a u64 divide by 10 for arm32
+drm-intel drm-intel-fixes 184889dfe0568528fd6d14bba864dd57ed45bbf2
+	drm/i915/psr: Do not trigger Frame Change events from frontbuffer flush
+drm-xe drm-xe-fixes ab69754c9020bdd082b8df105bd992e315605952
+	FOR-DRM-XE-FIXES-TEST-UNBLOCK: platform/x86: asus-wmi: Only register lps0 dev for Ally devices
+drm drm-next 8f5ae30d69d7543eee0d70083daf4de8fe15d585
+	Linux 6.17-rc1
+drm-misc drm-misc-next-fixes 54d4f445517fe8350d735624d7f4225e7511d9eb
+	drm/panfrost: Print RSS for tiler heap BO's in debugfs GEMS file
+drm-intel drm-intel-next-fixes 5a569ef4d4ab184a481dd8ecb58f464a89b44d2f
+	drm/i915/display: Set C10_VDR_CTRL_MSGBUS_ACCESS before phy reg read
+drm-xe drm-xe-next-fixes 8f5ae30d69d7543eee0d70083daf4de8fe15d585
+	Linux 6.17-rc1
+drm-misc drm-misc-next fb357dbadbebc7a9ca3c5ef26f6c792b0e8e1278
+	fbcon: Add necessary include statements and forward declarations
+drm-intel drm-intel-next 6cb52cba474b2bec1a3018d3dbf75292059a29a1
+	drm/i915/icl+/tc: Convert AUX powered WARN to a debug message
+drm-intel drm-intel-gt-next 317be9c64215f264740c6dffb0a44216960875b2
+	drm/i915/gt: Protect against overflow in active_engine()
+drm-xe drm-xe-next 17593a69b75f098280ad88b625f2d8c5bfe4c6a1
+	drm/xe: rework PDE PAT index selection
+drm-intel topic/core-for-CI 5d02a8a47924660f5456c0501b4d455546a83d2a
+	usb: early: xhci-dbc: Fix early_ioremap leak
+drm-xe topic/xe-for-CI 7f2f32f161ac0048ade49a2d5db0aab9bae0633a
+	drm/xe/pf: Set VF LMEM BAR size
+drm topic/drm-next-nouveau-r570 6cc6e08d4542473d79ea83d9123d9d35e9c01c92
+	drm/nouveau/kms: add support for GB20x
