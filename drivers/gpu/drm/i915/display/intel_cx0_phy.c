@@ -3453,6 +3453,43 @@ static void intel_c10pll_state_verify(const struct intel_crtc_state *state,
 				 mpllb_sw_state->cmn, mpllb_hw_state->cmn);
 }
 
+static int readout_enabled_lane_count(struct intel_encoder *encoder)
+{
+	struct intel_digital_port *dig_port = enc_to_dig_port(encoder);
+	intel_wakeref_t wakeref;
+	u8 owned_lane_mask;
+	int max_lanes;
+	u8 disables;
+	int lane;
+
+	wakeref = intel_cx0_phy_transaction_begin(encoder);
+
+	max_lanes = intel_tc_port_max_lane_count(dig_port);
+	owned_lane_mask = max_lanes > 2 ? INTEL_CX0_BOTH_LANES : INTEL_CX0_LANE0;
+
+	intel_c10_msgbus_access_begin(encoder, owned_lane_mask);
+
+	disables = 0xf;
+	for (lane = 0; lane < max_lanes; lane++) {
+		u8 lane_mask = lane < 2 ? INTEL_CX0_LANE0 : INTEL_CX0_LANE1;
+		int tx = lane % 2 + 1;
+		u8 val;
+
+		val = intel_cx0_read(encoder, lane_mask, PHY_CX0_TX_CONTROL(tx, 2));
+		if (!(val & CONTROL2_DISABLE_SINGLE_TX))
+			/*
+			 * In legacy mode, the following doesn't account with
+			 * lane_reversal, however we only care about the
+			 * number of disabled lanes.
+			 */
+			disables &= ~BIT(lane);
+	}
+
+	intel_cx0_phy_transaction_end(encoder, wakeref);
+
+	return 4 - hweight8(disables);
+}
+
 bool intel_cx0pll_readout_hw_state(struct intel_encoder *encoder,
 				   struct intel_cx0pll_state *pll_state)
 {
@@ -3463,13 +3500,17 @@ bool intel_cx0pll_readout_hw_state(struct intel_encoder *encoder,
 
 	if (intel_encoder_is_c10phy(encoder)) {
 		pll_state->use_c10 = true;
-		if (enabled)
+		if (enabled) {
 			intel_c10pll_readout_hw_state(encoder, &pll_state->c10);
+			pll_state->lane_count = readout_enabled_lane_count(encoder);
+		}
 	} else {
-		if (intel_tc_port_in_tbt_alt_mode(enc_to_dig_port(encoder)))
+		if (intel_tc_port_in_tbt_alt_mode(enc_to_dig_port(encoder))) {
 			pll_state->tbt_mode = true;
-		else if (enabled)
+		} else if (enabled) {
 			intel_c20pll_readout_hw_state(encoder, &pll_state->c20);
+			pll_state->lane_count = readout_enabled_lane_count(encoder);
+		}
 	}
 
 	return enabled;
