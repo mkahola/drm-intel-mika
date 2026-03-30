@@ -11,6 +11,7 @@
 #include "intel_alpm.h"
 #include "intel_cx0_phy.h"
 #include "intel_cx0_phy_regs.h"
+#include "intel_cx0_phy_test.h"
 #include "intel_display_regs.h"
 #include "intel_ddi.h"
 #include "intel_ddi_buf_trans.h"
@@ -3857,3 +3858,23 @@ void intel_cx0pll_verify_plls(struct intel_display *display)
 	intel_cx0pll_verify_tables(display, xe3lpd_c20_dp_edp_tables);
 	intel_cx0pll_verify_tables(display, mtl_c20_hdmi_tables);
 }
+
+#if IS_ENABLED(CONFIG_DRM_I915_KUNIT_CX0_PHY)
+const struct intel_cx0pll_params *intel_cx0_phy_get_mtl_c10_edp_tables(void) { return mtl_c10_edp_tables; }
+const struct intel_cx0pll_params *intel_cx0_phy_get_mtl_c10_dp_tables(void)  { return mtl_c10_dp_tables; }
+const struct intel_cx0pll_params *intel_cx0_phy_get_mtl_c10_hdmi_tables(void){ return mtl_c10_hdmi_tables; }
+
+const struct intel_cx0pll_params *intel_cx0_phy_get_xe2hpd_c20_edp_tables(void) { return xe2hpd_c20_edp_tables; }
+const struct intel_cx0pll_params *intel_cx0_phy_get_mtl_c20_dp_tables(void)     { return mtl_c20_dp_tables; }
+const struct intel_cx0pll_params *intel_cx0_phy_get_xe2hpd_c20_dp_tables(void)  { return xe2hpd_c20_dp_tables; }
+const struct intel_cx0pll_params *intel_cx0_phy_get_xe3lpd_c20_dp_edp_tables(void) { return xe3lpd_c20_dp_edp_tables; }
+const struct intel_cx0pll_params *intel_cx0_phy_get_mtl_c20_hdmi_tables(void)   { return mtl_c20_hdmi_tables; }
+
+int intel_cx0_phy_test_calc_port_clock(const struct intel_cx0pll_params *p)
+{
+	if (p->is_c10)
+		return intel_c10pll_calc_port_clock(p->c10);
+
+	return intel_c20pll_calc_port_clock(p->c20);
+}
+#endif

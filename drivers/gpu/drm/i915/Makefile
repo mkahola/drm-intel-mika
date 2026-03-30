@@ -381,6 +381,10 @@ i915-y += \
 	display/vlv_dsi.o \
 	display/vlv_dsi_pll.o
 
+# KUnit tests
+i915-$(CONFIG_DRM_I915_KUNIT_CX0_PHY) += \
+	selftests/intel_cx0_phy_kunit.o
+
 i915-$(CONFIG_DRM_I915_DP_TUNNEL) += \
 	display/intel_dp_tunnel.o
 

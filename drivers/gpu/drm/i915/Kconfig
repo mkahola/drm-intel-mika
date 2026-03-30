@@ -175,6 +175,19 @@ depends on EXPERT
 source "drivers/gpu/drm/i915/Kconfig.debug"
 endmenu
 
+menu "drm/i915 KUnit tests"
+	depends on DRM_I915 && KUNIT
+
+config DRM_I915_KUNIT_CX0_PHY
+	tristate "KUnit tests for CX0 PHY (C10/C20) PLL tables"
+	default n
+	help
+	  Builds KUnit tests that validate the C10/C20 PLL table entries in
+	  intel_cx0_phy.c by comparing the calculated port clock against the
+	  per-entry expected clock.
+
+endmenu
+
 menu "drm/i915 Profile Guided Optimisation"
 	visible if EXPERT
 	depends on DRM_I915
