@@ -2346,6 +2346,12 @@ static void bxt_sanitize_cdclk(struct intel_display *display)
 	 * so sanitize this register.
 	 */
 	cdctl = intel_de_read(display, CDCLK_CTL);
+
+	if (cdctl == 0) {
+		drm_dbg_kms(display->drm, "Assuming CDCLK_CTL register read is invalid\n");
+		return;
+	}
+
 	expected = bxt_cdclk_ctl(display, &display->cdclk.hw, INVALID_PIPE);
 
 	/*
