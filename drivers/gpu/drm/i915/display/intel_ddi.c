@@ -4308,11 +4308,12 @@ static void mtl_ddi_tc_phy_get_config(struct intel_encoder *encoder,
 }
 
 static void dg2_ddi_get_config(struct intel_encoder *encoder,
-				struct intel_crtc_state *crtc_state)
+			       struct intel_crtc_state *crtc_state)
 {
 	intel_mpllb_readout_hw_state(encoder, &crtc_state->dpll_hw_state.mpllb);
-	crtc_state->port_clock = intel_mpllb_calc_port_clock(encoder, &crtc_state->dpll_hw_state.mpllb);
-
+	crtc_state->port_clock =
+		intel_mpllb_calc_port_clock(encoder,
+					    &crtc_state->dpll_hw_state.mpllb);
 	intel_ddi_get_config(encoder, crtc_state);
 }
 
