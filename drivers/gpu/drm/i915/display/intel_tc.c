@@ -458,7 +458,7 @@ void intel_tc_port_set_fia_lane_count(struct intel_digital_port *dig_port,
 	intel_de_write(display, PORT_TX_DFLEXDPMLE1(tc->phy_fia), val);
 }
 
-static void tc_port_fixup_legacy_flag(struct intel_tc_port *tc,
+static bool tc_port_fixup_legacy_flag(struct intel_tc_port *tc,
 				      u32 live_status_mask)
 {
 	struct intel_display *display = to_intel_display(tc->dig_port);
@@ -467,7 +467,7 @@ static void tc_port_fixup_legacy_flag(struct intel_tc_port *tc,
 	drm_WARN_ON(display->drm, tc->mode != TC_PORT_DISCONNECTED);
 
 	if (hweight32(live_status_mask) != 1)
-		return;
+		return false;
 
 	if (tc->legacy_port)
 		valid_hpd_mask = BIT(TC_PORT_LEGACY);
@@ -476,7 +476,7 @@ static void tc_port_fixup_legacy_flag(struct intel_tc_port *tc,
 				 BIT(TC_PORT_TBT_ALT);
 
 	if (!(live_status_mask & ~valid_hpd_mask))
-		return;
+		return false;
 
 	/* If live status mismatches the VBT flag, trust the live status. */
 	drm_dbg_kms(display->drm,
@@ -484,6 +484,8 @@ static void tc_port_fixup_legacy_flag(struct intel_tc_port *tc,
 		    tc->port_name, live_status_mask, valid_hpd_mask);
 
 	tc->legacy_port = !tc->legacy_port;
+
+	return true;
 }
 
 static void tc_phy_load_fia_params(struct intel_tc_port *tc, bool modular_fia)
@@ -1475,11 +1477,16 @@ static void tc_phy_connect(struct intel_tc_port *tc, int required_lanes)
 {
 	struct intel_display *display = to_intel_display(tc->dig_port);
 	u32 live_status_mask = tc_phy_hpd_live_status(tc);
+	bool legacy_flag_fixed;
 	bool connected;
 
-	tc_port_fixup_legacy_flag(tc, live_status_mask);
+	legacy_flag_fixed = tc_port_fixup_legacy_flag(tc, live_status_mask);
 
 	tc->mode = hpd_mask_to_target_mode(tc, live_status_mask);
+
+	if (legacy_flag_fixed &&
+	    (tc->mode == TC_PORT_LEGACY || tc->mode == TC_PORT_DP_ALT))
+		tc_phy_wait_for_ready(tc);
 
 	connected = tc->phy_ops->connect(tc, required_lanes);
 	if (!connected && tc->mode != default_tc_mode(tc)) {
