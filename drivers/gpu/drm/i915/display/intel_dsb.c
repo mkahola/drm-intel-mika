@@ -1026,6 +1026,55 @@ void intel_dsb_wait(struct intel_dsb *dsb)
 }
 
 /**
+ * intel_dsb_engine_is_wedged() - Check whether a DSB engine is wedged.
+ * @dsb: DSB context
+ *
+ * Check whether the DSB hardware engine has latched a fatal error
+ * (GTT/ATS fault, response timeout, poll error, ...) which would prevent
+ * it from making any further progress.
+ *
+ * Returns:
+ * %true if the DSB engine is wedged, %false otherwise.
+ */
+bool intel_dsb_engine_is_wedged(struct intel_dsb *dsb)
+{
+	struct intel_crtc *crtc = dsb->crtc;
+	struct intel_display *display = to_intel_display(crtc->base.dev);
+	enum pipe pipe = crtc->pipe;
+
+	return intel_de_read_fw(display, DSB_INTERRUPT(pipe, dsb->id)) &
+		dsb_error_int_status(display);
+}
+
+/**
+ * intel_dsb_reset() - Reset a wedged DSB engine.
+ * @dsb: DSB context
+ *
+ * Abort any stuck execution on the DSB hardware engine and acknowledge any
+ * latched error/completion so that the engine can be reused. Only the
+ * hardware state is touched; the in-flight command buffer contents are
+ * left intact.
+ */
+void intel_dsb_reset(struct intel_dsb *dsb)
+{
+	struct intel_crtc *crtc = dsb->crtc;
+	struct intel_display *display = to_intel_display(crtc->base.dev);
+	enum pipe pipe = crtc->pipe;
+
+	drm_dbg_kms(display->drm, "[CRTC:%d:%s] DSB %d wedged, resetting engine\n",
+		    crtc->base.base.id, crtc->base.name, dsb->id);
+
+	/* Halt and then disable the engine to abort any stuck execution. */
+	intel_de_write_fw(display, DSB_CTRL(pipe, dsb->id),
+			  DSB_ENABLE | DSB_HALT);
+	intel_de_write_fw(display, DSB_CTRL(pipe, dsb->id), 0);
+
+	/* Acknowledge and clear any latched errors/completion. */
+	intel_de_write_fw(display, DSB_INTERRUPT(pipe, dsb->id),
+			  dsb_error_int_status(display) | DSB_PROG_INT_STATUS);
+}
+
+/**
  * intel_dsb_prepare() - Allocate, pin and map the DSB command buffer.
  * @state: the atomic state
  * @crtc: the CRTC

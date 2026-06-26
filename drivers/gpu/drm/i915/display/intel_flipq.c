@@ -156,20 +156,24 @@ static int intel_flipq_preempt_timeout_ms(struct intel_display *display)
 	return DIV_ROUND_UP(intel_flipq_exec_time_us(display), 1000);
 }
 
-static void intel_flipq_preempt(struct intel_crtc *crtc, bool preempt)
+static bool intel_flipq_preempt(struct intel_crtc *crtc, bool preempt)
 {
 	struct intel_display *display = to_intel_display(crtc);
+	int ret = 0;
 
 	intel_de_rmw(display, PIPEDMC_FQ_CTRL(crtc->pipe),
 		     PIPEDMC_FQ_CTRL_PREEMPT, preempt ? PIPEDMC_FQ_CTRL_PREEMPT : 0);
 
-	if (preempt &&
-	    intel_de_wait_for_clear_ms(display,
-				       PIPEDMC_FQ_STATUS(crtc->pipe),
-				       PIPEDMC_FQ_STATUS_BUSY,
-				       intel_flipq_preempt_timeout_ms(display)))
+	if (preempt)
+		ret = intel_de_wait_for_clear_ms(display,
+						 PIPEDMC_FQ_STATUS(crtc->pipe),
+						 PIPEDMC_FQ_STATUS_BUSY,
+						 intel_flipq_preempt_timeout_ms(display));
+	if (ret)
 		drm_err(display->drm, "[CRTC:%d:%s] flip queue preempt timeout\n",
 			crtc->base.base.id, crtc->base.name);
+
+	return ret == 0;
 }
 
 static int intel_flipq_current_head(struct intel_crtc *crtc, enum intel_flipq_id flipq_id)
@@ -272,6 +276,45 @@ void intel_flipq_reset(struct intel_display *display, enum pipe pipe)
 	}
 
 	intel_de_write(display, PIPEDMC_FPQ_ATOMIC_TP(pipe), 0);
+}
+
+/*
+ * Recover from a wedged flip queue. The pipe DMC has stopped consuming
+ * ring buffer entries (e.g. the preempt handshake timed out), so abort the
+ * stuck execution, clear any latched pipe DMC errors, reset the ring buffer
+ * pointers and re-enable the queue so subsequent flips can continue.
+ */
+static void intel_flipq_recover(struct intel_crtc *crtc)
+{
+	struct intel_display *display = to_intel_display(crtc);
+	enum intel_flipq_id flipq_id;
+
+	drm_err(display->drm,
+		"[CRTC:%d:%s] flip queue wedged, resetting ring buffer\n",
+		crtc->base.base.id, crtc->base.name);
+
+	/* Disable the queue to abort any stuck execution. */
+	intel_de_write(display, PIPEDMC_FQ_CTRL(crtc->pipe), 0);
+
+	/* Acknowledge and clear any latched pipe DMC errors. */
+	intel_de_write(display, PIPEDMC_INTERRUPT(crtc->pipe),
+		       intel_de_read(display, PIPEDMC_INTERRUPT(crtc->pipe)));
+
+	/* Reset the ring buffer head/current-head and tail pointers. */
+	for_each_flipq(flipq_id) {
+		struct intel_flipq *flipq = &crtc->flipq[flipq_id];
+
+		intel_de_write(display, PIPEDMC_FPQ_HP(crtc->pipe, flipq_id), 0);
+		intel_de_write(display, PIPEDMC_FPQ_CHP(crtc->pipe, flipq_id), 0);
+
+		flipq->tail = 0;
+	}
+
+	intel_de_write(display, PIPEDMC_FPQ_ATOMIC_TP(crtc->pipe), 0);
+
+	/* Re-enable the queue so subsequent flips can continue. */
+	intel_de_write(display, PIPEDMC_FQ_CTRL(crtc->pipe),
+		       PIPEDMC_FQ_CTRL_ENABLE);
 }
 
 static enum pipedmc_event_id flipq_event_id(struct intel_display *display)
@@ -433,7 +476,22 @@ void intel_flipq_add(struct intel_crtc *crtc,
 
 	pts += intel_de_read(display, PIPEDMC_FPQ_TS(crtc->pipe));
 
-	intel_flipq_preempt(crtc, true);
+	/*
+	 * If the DSB engine that will run this flip is wedged, reset it
+	 * before queueing so the flip can actually be executed.
+	 */
+	if (intel_dsb_engine_is_wedged(dsb))
+		intel_dsb_reset(dsb);
+
+	/*
+	 * Preempt the flip queue so we can update the ring buffer. If the
+	 * pipe DMC has wedged the ring buffer the preempt handshake times
+	 * out; recover by resetting the ring buffer and retry the preempt.
+	 */
+	if (!intel_flipq_preempt(crtc, true)) {
+		intel_flipq_recover(crtc);
+		intel_flipq_preempt(crtc, true);
+	}
 
 	if (DISPLAY_VER(display) >= 30)
 		ptl_flipq_add(display, flipq,  pts, dsb_id, dsb);
