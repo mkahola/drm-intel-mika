@@ -17,6 +17,14 @@
  * in the scaler)
  */
 static const struct vimc_pix_map vimc_pix_map_list[] = {
+	{
+		/* Plain 8-bit greyscale -- e.g. for view-only/preview
+		 * capture paths that need no colour/Bayer pattern. */
+		.code = { MEDIA_BUS_FMT_Y8_1X8 },
+		.pixelformat = V4L2_PIX_FMT_GREY,
+		.bpp = 1,
+		.bayer = false,
+	},
 	/* TODO: add all missing formats */
 
 	/* RGB formats */

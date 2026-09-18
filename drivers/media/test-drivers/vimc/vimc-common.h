@@ -213,6 +213,7 @@ extern const struct vimc_ent_type vimc_debayer_type;
 extern const struct vimc_ent_type vimc_scaler_type;
 extern const struct vimc_ent_type vimc_capture_type;
 extern const struct vimc_ent_type vimc_lens_type;
+extern const struct vimc_ent_type vimc_sensor_hsi16_type;
 
 /**
  * vimc_pix_map_by_index - get vimc_pix_map struct by its index

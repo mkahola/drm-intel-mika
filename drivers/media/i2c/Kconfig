@@ -1814,3 +1814,27 @@ config VIDEO_MAX96717
 endmenu
 
 endif # VIDEO_DEV
+
+config VIDEO_HSI16
+	tristate "HSI16 16-band mosaic hyperspectral sensor support"
+	depends on GPIOLIB && I2C && VIDEO_DEV
+	select MEDIA_CONTROLLER
+	select VIDEO_V4L2_SUBDEV_API
+	select V4L2_FWNODE
+	help
+	  Video4Linux2 sensor driver for the HSI16 miniature hyperspectral
+	  image sensor, which uses an on-die Fabry-Perot spectral filter
+	  array to produce a 16-band mosaic over MIPI CSI-2.
+
+	  To compile this driver as a module, choose M here: the module
+	  will be called hsi16.
+
+config HSI16_FAKE_HW
+	bool "HSI16: emulate register access instead of real I2C"
+	depends on VIDEO_HSI16
+	help
+	  Replace the HSI16 driver's I2C register backend with an
+	  in-memory model, for control-plane testing (probe, media
+	  topology, format negotiation, streaming state machine) with no
+	  physical sensor attached. Say N unless you are testing this
+	  driver without hardware.
