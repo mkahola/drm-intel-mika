@@ -14,6 +14,7 @@
 #include "intel_display_regs.h"
 #include "intel_display_types.h"
 #include "intel_display_utils.h"
+#include "intel_display_wa.h"
 #include "intel_dpll.h"
 #include "intel_dpll_mgr.h"
 #include "intel_hdmi.h"
@@ -2312,6 +2313,49 @@ void intel_xe3plpd_pll_disable(struct intel_encoder *encoder)
 	else
 		intel_lt_phy_pll_disable(encoder);
 
+}
+
+/*
+ * WA 14022081154
+ * LT PHY version of intel_cx0_pll_power_save_wa(), see that function for the
+ * sequence. The W/A is needed only for port A.
+ */
+void intel_lt_phy_pll_power_save_wa(struct intel_display *display)
+{
+	struct intel_encoder *encoder;
+
+	if (!intel_display_wa(display, INTEL_DISPLAY_WA_14022081154))
+		return;
+
+	for_each_intel_encoder(display->drm, encoder) {
+		struct intel_dpll_hw_state hw_state = {};
+		int port_clock = 162000;
+		int lane_count = 4;
+
+		if (!intel_encoder_is_dig_port(encoder))
+			continue;
+
+		if (intel_encoder_to_phy(encoder) != PHY_A)
+			continue;
+
+		if (intel_lt_phy_pll_is_enabled(encoder))
+			continue;
+
+		if (intel_lt_phy_pll_calc_state_from_table(display, xe3plpd_lt_edp_tables,
+							   port_clock, lane_count,
+							   &hw_state.ltpll) < 0) {
+			drm_warn(display->drm,
+				 "Unable to calc LT PHY state from the tables\n");
+			continue;
+		}
+
+		drm_dbg_kms(display->drm,
+			    "[ENCODER:%d:%s] Applying power saving workaround on disabled PLL\n",
+			    encoder->base.base.id, encoder->base.name);
+
+		intel_lt_phy_pll_enable(encoder, NULL, &hw_state);
+		intel_lt_phy_pll_disable(encoder);
+	}
 }
 
 static void intel_lt_phy_pll_verify_clock(struct intel_display *display,

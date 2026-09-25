@@ -5220,12 +5220,20 @@ static void sanitize_dpll_state(struct intel_display *display,
 	_intel_disable_shared_dpll(display, pll);
 }
 
+void intel_dpll_power_save_wa(struct intel_display *display)
+{
+	if (HAS_LT_PHY(display))
+		intel_lt_phy_pll_power_save_wa(display);
+	else
+		intel_cx0_pll_power_save_wa(display);
+}
+
 void intel_dpll_sanitize_state(struct intel_display *display)
 {
 	struct intel_dpll *pll;
 	int i;
 
-	intel_cx0_pll_power_save_wa(display);
+	intel_dpll_power_save_wa(display);
 
 	for_each_dpll(display, pll, i)
 		sanitize_dpll_state(display, pll);
