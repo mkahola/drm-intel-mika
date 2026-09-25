@@ -1740,6 +1740,29 @@ intel_lt_phy_calc_port_clock(struct intel_display *display,
 	return clk;
 }
 
+static int
+intel_lt_phy_pll_calc_state_from_table(struct intel_display *display,
+				       const struct intel_lt_phy_pll_params *tables,
+				       int port_clock, int lane_count,
+				       struct intel_lt_phy_pll_state *pll_state)
+{
+	int i;
+
+	for (i = 0; tables[i].name; i++) {
+		int clock = intel_lt_phy_calc_port_clock(display, tables[i].state);
+
+		drm_WARN_ON(display->drm, !intel_dpll_clock_matches(clock, tables[i].clock_rate));
+		if (intel_dpll_clock_matches(port_clock, clock)) {
+			*pll_state = *tables[i].state;
+			pll_state->lane_count = lane_count;
+
+			return 0;
+		}
+	}
+
+	return -EINVAL;
+}
+
 int
 intel_lt_phy_pll_calc_state(struct intel_crtc_state *crtc_state,
 			    struct intel_encoder *encoder,
@@ -1747,7 +1770,6 @@ intel_lt_phy_pll_calc_state(struct intel_crtc_state *crtc_state,
 {
 	struct intel_display *display = to_intel_display(crtc_state);
 	const struct intel_lt_phy_pll_params *tables;
-	int i;
 
 	memset(hw_state, 0, sizeof(*hw_state));
 
@@ -1755,21 +1777,18 @@ intel_lt_phy_pll_calc_state(struct intel_crtc_state *crtc_state,
 	if (!tables)
 		return -EINVAL;
 
-	for (i = 0; tables[i].name; i++) {
-		int clock = intel_lt_phy_calc_port_clock(display, tables[i].state);
+	if (!intel_lt_phy_pll_calc_state_from_table(display, tables,
+						    crtc_state->port_clock,
+						    crtc_state->lane_count,
+						    &hw_state->ltpll)) {
+		if (intel_crtc_has_dp_encoder(crtc_state) &&
+		    intel_crtc_has_type(crtc_state, INTEL_OUTPUT_EDP))
+			hw_state->ltpll.config[2] = 1;
 
-		drm_WARN_ON(display->drm, !intel_dpll_clock_matches(clock, tables[i].clock_rate));
-		if (intel_dpll_clock_matches(crtc_state->port_clock, clock)) {
-			hw_state->ltpll = *tables[i].state;
-			if (intel_crtc_has_dp_encoder(crtc_state)) {
-				if (intel_crtc_has_type(crtc_state, INTEL_OUTPUT_EDP))
-					hw_state->ltpll.config[2] = 1;
-			}
-			hw_state->ltpll.ssc_enabled =
-				intel_lt_phy_pll_is_ssc_enabled(crtc_state, encoder);
-			hw_state->ltpll.lane_count = crtc_state->lane_count;
-			return 0;
-		}
+		hw_state->ltpll.ssc_enabled =
+			intel_lt_phy_pll_is_ssc_enabled(crtc_state, encoder);
+
+		return 0;
 	}
 
 	if (intel_crtc_has_type(crtc_state, INTEL_OUTPUT_HDMI)) {
