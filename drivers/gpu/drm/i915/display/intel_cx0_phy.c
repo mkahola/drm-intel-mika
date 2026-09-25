@@ -19,6 +19,7 @@
 #include "intel_de.h"
 #include "intel_display_types.h"
 #include "intel_display_utils.h"
+#include "intel_display_wa.h"
 #include "intel_dp.h"
 #include "intel_dpll.h"
 #include "intel_hdmi.h"
@@ -3715,7 +3716,7 @@ void intel_cx0_pll_power_save_wa(struct intel_display *display)
 {
 	struct intel_encoder *encoder;
 
-	if (DISPLAY_VER(display) != 30)
+	if (!intel_display_wa(display, INTEL_DISPLAY_WA_14022081154))
 		return;
 
 	for_each_intel_encoder(display->drm, encoder) {
